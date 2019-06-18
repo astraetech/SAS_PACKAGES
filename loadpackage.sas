@@ -12,7 +12,7 @@
 /*                                                                     */
 /**###################################################################**/
 
-/* Macro to load SAS packages */
+/* Macros to load or to unload SAS packages */
 /* A SAS package is a zip file containing a group 
    of SAS codes (macros, functions, datasteps generating 
    data, etc.) wrapped up together and %INCLUDEed by
@@ -38,6 +38,23 @@
   filename package clear;
 %mend loadPackage;
 
+%macro unloadPackage(
+  packageName                                     /* name of a package, e.g. myPackageFile.zip, not null  */
+, path = %sysfunc(pathname(packages))             /* location of a package, by default it looks for location of "packages" library */
+, options = %str(LOWCASE_MEMNAME ENCODING = utf8) /* possible options for ZIP filename */
+, source2 = /*source2*/                           /* option to print out details, null by default */
+);
+  filename package ZIP 
+  /* put location of package myPackageFile.zip here */
+    "&path./&packageName..zip" %unquote(&options.)
+  ;
+  %if %sysfunc(fexist(package)) %then
+    %do;
+      %include package(unload.sas) / &source2.;
+    %end;
+  %else %put ERROR:[&sysmacroname] File "&path./&packageName..zip" does not exist;
+  filename package clear;
+%mend unloadPackage;
 
 /* use example: 
    assuming that _THIS_FILE_ and a macroarray.zip package 
@@ -50,4 +67,6 @@ libname packages "C:/SAS_PACKAGES/";
 %include "%sysfunc(pathname(packages))/loadpackage.sas";
 
 %loadPackage(macroarray)
+
+%unloadPackage(macroarray)
 */
