@@ -20,12 +20,16 @@
 , options = %str(LOWCASE_MEMNAME ENCODING = utf8) /* possible options for ZIP filename */
 , source2 = /*source2*/                           /* option to print out details, null by default */
 );
-filename package zip 
-/* put location of package myPackageFile.zip here */
-"&path./&packageName..zip" %unquote(&options.)
-;
-%include package(load.sas) / &source2.;
-filename package;
+  filename package ZIP 
+  /* put location of package myPackageFile.zip here */
+    "&path./&packageName..zip" %unquote(&options.)
+  ;
+  %if %sysfunc(fexist(package)) %then
+    %do;
+      %include package(load.sas) / &source2.;
+    %end;
+  %else %put ERROR:[&sysmacroname] File "&path./&packageName..zip" does not exist;
+  filename package clear;
 %mend loadPackage;
 
 
