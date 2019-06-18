@@ -13,6 +13,12 @@
 /**###################################################################**/
 
 /* Macro to load SAS packages */
+/* A SAS package is a zip file containing a group 
+   of SAS codes (macros, functions, datasteps generating 
+   data, etc.) wrapped up together and %INCLUDEed by
+   a single load.sas file (also embeaded inside the zip).
+*/
+
 
 %macro loadPackage(
   packageName                                     /* name of a package, e.g. myPackageFile.zip, not null  */
