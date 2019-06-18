@@ -32,7 +32,8 @@ filename package;
 /* use example: 
    assuming that _THIS_FILE_ and a macroarray.zip package 
    are located in the 'C:/SAS_PACKAGES/' folder 
-   execute the following code 
+   coppy the following code int autoexec.sas
+   or run it in your SAS session
 */
 /*
 libname packages "C:/SAS_PACKAGES/";
