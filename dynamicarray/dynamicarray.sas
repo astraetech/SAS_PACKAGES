@@ -111,7 +111,7 @@ data _null_;
   putlog "NOTE-" _infile_;
 cards4;
 /* dynamic Array package - an example of use */ 
-/* options mprint source; */ 
+options mprint source notes; 
 data _null_; 
  
   /* declare empty numeric array ABC 
