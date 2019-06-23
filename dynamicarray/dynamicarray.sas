@@ -80,18 +80,15 @@ end;
 
 
 %macro getVal(VARIABLE, ARRAY, INDEX);
-  call missing(_&ARRAY.CELL_);
-  _I_ = &INDEX;
-  _RC_ = &ARRAY..find();
+  call missing(_I_, _&ARRAY.CELL_);
+  _RC_ = &ARRAY..find(key:&INDEX);
   &VARIABLE. = _&ARRAY.CELL_;
 %mend getVal;
 
 %macro putVal(ARRAY, INDEX, VARIABLE);
   if not missing(&INDEX.) then
     do;
-      _I_ = &INDEX;
-      _&ARRAY.CELL_ = &VARIABLE. ; 
-      _RC_ = &ARRAY..replace();
+      _RC_ = &ARRAY..replace(key:&INDEX., data:&INDEX., data:&VARIABLE.);
     end;
 %mend putVal;
 
@@ -100,6 +97,7 @@ end;
   &START. = _I_;
   _RC_ = IT_&ARRAY..last();
   &END. = _I_;
+  _RC_ = IT_&ARRAY..next();
   drop &START. &END.;
 %mend rangeOf;
 
