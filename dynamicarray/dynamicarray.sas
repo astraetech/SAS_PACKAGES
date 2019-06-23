@@ -80,7 +80,7 @@ end;
 
 
 %macro getVal(VARIABLE, ARRAY, INDEX);
-  call missing(_I_, _&ARRAY.CELL_);
+  call missing(_&ARRAY.CELL_);
   _RC_ = &ARRAY..find(key:&INDEX);
   &VARIABLE. = _&ARRAY.CELL_;
 %mend getVal;
