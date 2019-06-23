@@ -15,6 +15,24 @@ filename package list;
 
 %put NOTE: loading package dynamicArray START;
 
+data _null_;
+  put "NOTE- " / ;
+  put 'NOTE: The following macros are to be compiled:' /;
+  do macroname = 
+      'DYNARRAY',
+      'APPENDTO',
+      'APPENDBEFORE',
+      'LOOPOVER',
+      'LOOPEND',
+      'GETVAL',
+      'PUTVAL',
+      'RANGEOF';
+    put "NOTE- " macroname;
+  end;
+  put "NOTE- " / " "; 
+  put "NOTE- " / " ";
+run;
+
 %include package(dynamicarray.sas) ;
 
 %put NOTE: loading package dynamicArray END;

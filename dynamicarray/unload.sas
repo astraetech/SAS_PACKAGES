@@ -15,6 +15,24 @@ filename package list;
 
 %put NOTE: unloading package dynamicArray START;
 
+data _null_;
+  put "NOTE- " / ;
+  put 'NOTE: The following macros are to be deleted:' /;
+  do macroname = 
+      'DYNARRAY',
+      'APPENDTO',
+      'APPENDBEFORE',
+      'LOOPOVER',
+      'LOOPEND',
+      'GETVAL',
+      'PUTVAL',
+      'RANGEOF';
+    put "NOTE- " macroname;
+  end;
+  put "NOTE- " / " "; 
+  put "NOTE- " / " ";
+run;
+
 /* delete macros and formats */
 proc sql;
   create table _%sysfunc(datetime(), hex16.)_ as
