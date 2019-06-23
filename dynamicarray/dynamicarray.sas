@@ -179,6 +179,16 @@ data _null_;
     %loopEnd; 
   %loopEnd; 
  
+ %rangeOf(ABC) 
+  put lboundABC=  hboundABC=; 
+  _rc_ = ABC.REMOVE(key:lboundABC); 
+  _rc_ = ABC.REMOVE(key:hboundABC) ;
+ 
+  do _I_ = lboundABC to hboundABC; 
+   %getVal(test, ABC, _I_); 
+    put _ALL_; 
+  end; 
+ 
 run;
 ;;;;
 run;
