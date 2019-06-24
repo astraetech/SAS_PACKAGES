@@ -11,98 +11,39 @@
 /*                                                                     */
 /**###################################################################**/
 
-/* dynamicarray package is a hash table wrapper which emulates 
-   beviour of classic array but based on hash table, there 
-   is an integer variable index _I_ and a data portion variable
-   _<arrayName>cell_. It is not a speed deamon for big sazes arrays, 
-   it works with hahs table speed/efficiency
-*/
+filename package list;
 
-%macro dynArray(
-  ARRAY     /* array name, not null */
-, TYPE=8    /* array type ,default: numerc 8 bytes */
-, HASHEXP=8 /* hashexp for hash table, default: 8*/
-);
-  if _N_ = 1 then
-  do;
-    length _I_ _RC_ 8 _&ARRAY.CELL_ &type. ;
-    declare hash &ARRAY.(ordered:"A", hashexp:&HASHEXP.);
-    &ARRAY..defineKey("_I_");
-    &ARRAY..defineData("_I_","_&ARRAY.CELL_"); 
-    &ARRAY..defineDone();
-    &ARRAY..clear();
-    declare hiter IT_&ARRAY.("&ARRAY.");
-    drop _&ARRAY.CELL_ _I_ _RC_;
-  end;
-%mend dynArray;
-
-
-%macro appendTo(ARRAY, VARIABLE);
-  call missing(_I_);
-  _RC_ = IT_&ARRAY..last();
-  _I_ + 1;
-  _&ARRAY.CELL_ = &VARIABLE.;
-  _RC_ = &ARRAY..replace();
-%mend appendTo;
-
-%macro appendBefore(ARRAY, VARIABLE);
-  call missing(_I_);
-  _RC_ = IT_&ARRAY..first();
-  _I_ + (-1);
-  _&ARRAY.CELL_ = &VARIABLE.;
-  _RC_ = &ARRAY..replace();
-%mend appendBefore;
-
-
-%macro loopOver(ARRAYS);
-  %local ARRAY i;
-  %let ARRAY = %scan(&ARRAYS., 1);
-  _RC_ = IT_&ARRAY..first();
-  _RC_ = IT_&ARRAY..prev();
-  do while(IT_&ARRAY..next()=0);
-
-    %let i = 2;
-    %let ARRAY = %scan(&ARRAYS., &i.); 
-    %do %while(&ARRAY. ne);
-
-      call missing(_&ARRAY.CELL_);
-      _RC_ = &ARRAY..find();
-
-      %let i = %eval(&i.+1);
-      %let ARRAY = %scan(&ARRAYS., &i.); 
-    %end;
-/*end;*/
-%mend loopOver;
-
-%macro loopEnd;
-end;
-%mend loopEnd;
-
-
-%macro getVal(VARIABLE, ARRAY, INDEX);
-  call missing(_&ARRAY.CELL_);
-  _RC_ = &ARRAY..find(key:&INDEX);
-  &VARIABLE. = _&ARRAY.CELL_;
-%mend getVal;
-
-%macro putVal(ARRAY, INDEX, VARIABLE);
-  if not missing(&INDEX.) then
-    do;
-      _RC_ = &ARRAY..replace(key:&INDEX., data:&INDEX., data:&VARIABLE.);
-    end;
-%mend putVal;
-
-%macro rangeOf(ARRAY, START=lbound&ARRAY., END=hbound&ARRAY.);
-  _RC_ = IT_&ARRAY..first();
-  &START. = _I_;
-  _RC_ = IT_&ARRAY..last();
-  &END. = _I_;
-  _RC_ = IT_&ARRAY..next();
-  drop &START. &END.;
-%mend rangeOf;
-
+%put NOTE: HELP to package dynamicArray START;
 
 data _null_;
+  put "NOTE- " / ;
+  put 'NOTE: The following macros are elements of the dynamicArray package:' /;
+  do macroname = 
+      'DYNARRAY',
+      'APPENDTO',
+      'APPENDBEFORE',
+      'LOOPOVER',
+      'LOOPEND',
+      'GETVAL',
+      'PUTVAL',
+      'RANGEOF';
+    put "NOTE- " macroname;
+  end;
+  put "NOTE- " / " "; 
+  put "NOTE- " / " ";
+run;
+
+data _%sysfunc(datetime(), hex16.)_;
+ length ps ls $ 32;
+ ps = getoption("ps");
+ ls = getoption("ls");;
+ call execute ('options ps = max ls = max;');
+run;
+
+data _null_;
+  infile cards4 dsd dlm = '0A0D'x;
+  input ;
+  putlog "NOTE-" _infile_;
 cards4;
 /* dynamic Array package - an example of use */ 
 options mprint source notes; 
@@ -189,3 +130,12 @@ run;
 ;;;;
 run;
 
+
+data _null_;
+ set _last_ indsname = indsname;
+ call execute (cats('options ps = ', ps, ' ls = ', ls, ';') );
+ call execute ('proc delete data = ' !! indsname !! '; run;');
+run;
+
+
+%put NOTE: HELP to package dynamicArray END;

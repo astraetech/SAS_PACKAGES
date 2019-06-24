@@ -56,6 +56,26 @@
   filename package clear;
 %mend unloadPackage;
 
+%macro helpPackage(
+  packageName                                     /* name of a package, e.g. myPackageFile.zip, not null  */
+, path = %sysfunc(pathname(packages))             /* location of a package, by default it looks for location of "packages" library */
+, options = %str(LOWCASE_MEMNAME ENCODING = utf8) /* possible options for ZIP filename */
+, source2 = /*source2*/                           /* option to print out details, null by default */
+);
+  filename package ZIP 
+  /* put location of package myPackageFile.zip here */
+    "&path./&packageName..zip" %unquote(&options.)
+  ;
+  %if %sysfunc(fexist(package)) %then
+    %do;
+      %include package(help.sas) / &source2.;
+    %end;
+  %else %put ERROR:[&sysmacroname] File "&path./&packageName..zip" does not exist;
+  filename package clear;
+%mend unloadPackage;
+
+
+
 /* use example: 
    assuming that _THIS_FILE_ and a macroarray.zip package 
    are located in the 'C:/SAS_PACKAGES/' folder 
@@ -67,6 +87,8 @@ libname packages "C:/SAS_PACKAGES/";
 %include "%sysfunc(pathname(packages))/loadpackage.sas";
 
 %loadPackage(macroarray)
+
+%helpPackage(macroarray)
 
 %unloadPackage(macroarray)
 */
