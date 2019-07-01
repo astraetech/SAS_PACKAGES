@@ -72,7 +72,7 @@
     %end;
   %else %put ERROR:[&sysmacroname] File "&path./&packageName..zip" does not exist;
   filename package clear;
-%mend unloadPackage;
+%mend helpPackage;
 
 
 
