@@ -87,8 +87,16 @@ libname packages "C:/SAS_PACKAGES/";
 %include "%sysfunc(pathname(packages))/loadpackage.sas";
 
 %loadPackage(macroarray)
-
 %helpPackage(macroarray)
-
 %unloadPackage(macroarray)
+
+OR
+
+filename packages "C:/SAS_WORK/PACKAGES";
+%include packages(loadpackage.sas);
+
+%loadpackage(macroarray)
+%helpPackage(macroarray)
+%unloadPackage(macroarray)
+
 */
