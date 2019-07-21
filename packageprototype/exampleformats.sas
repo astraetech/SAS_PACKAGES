@@ -16,11 +16,10 @@
 %macro packageprototype_formats();
 
 %local _fmtsearch_;
-%let _fmtsearch_ = %sysfunc(strip(%sysfunc(compress(%sysfunc(getoption(fmtsearch)),%str(%(%))))));
+%let _fmtsearch_ = %sysfunc(getoption(fmtsearch));
 %put NOTE:[&sysmacroname.] *&=_fmtsearch_*;
 
-options fmtsearch = (WORK LIBRARY);
-PROC FORMAT;
+PROC FORMAT LIBRARY=WORK.PACKAGEPROTOTYPE_FORMATS;
 value frmt1_
   low  - 3 = "small3"
   3 - high = "big3"
@@ -35,9 +34,9 @@ value frmt3_
   low  - 5 = "small5"
   5 - high = "big5"
 ;
-run;
+RUN;
 
-options fmtsearch = (WORK %unquote(%sysfunc(tranwrd(&_fmtsearch_.,%str(WORK ),%str()))));
+options INSERT=(fmtsearch = WORK.PACKAGEPROTOTYPE_FORMATS) ;
 %let _fmtsearch_ = %sysfunc(getoption(fmtsearch));
 %put NOTE:[&sysmacroname.] *&=_fmtsearch_*;
 
@@ -51,7 +50,7 @@ proc sql;
   select memname, objname
   from dictionary.catalogs
   where 
-    objname = 'PACKAGEPROTOTYPE_FORMATS'
+    objname = upcase('PACKAGEPROTOTYPE_FORMATS')
     and objtype = 'MACRO'
     and libname  = 'WORK'
   order by memname, objname

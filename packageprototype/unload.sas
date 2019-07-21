@@ -38,6 +38,7 @@ proc sql;
       )
     and objtype = 'FORMAT'
     and libname  = 'WORK'
+    and memname = upcase('PACKAGEPROTOTYPE_FORMATS')
     )
 
   order by memname, objname
@@ -55,12 +56,36 @@ data _null_;
 run;
 proc delete data = _last_;
 run;
+proc delete data = WORK.PACKAGEPROTOTYPE_FORMATS(MTYPE = CATALOG);
+run;
+
 
 /* delete functions */
-PROC FCMP outlib = work.packageprototype.functions;
+PROC FCMP OUTLIB = WORK.PACKAGEPROTOTYPE_FUNCTIONS.FUNCTIONS;
   DELETEFUNC f;
   DELETEFUNC g; 
   DELETEFUNC h; 
 run;
+
+/* delete the link to the functions' dataset */
+options cmplib = (
+%unquote(
+%sysfunc(tranwrd(
+ %sysfunc(getoption(cmplib))
+,%str(WORK.PACKAGEPROTOTYPE_FUNCTIONS)
+,%str()
+))
+));
+
+/* delete the link to the formats' catalog */
+options fmtsearch = 
+%unquote(
+%sysfunc(tranwrd(
+ %sysfunc(getoption(fmtsearch))
+,%str(WORK.PACKAGEPROTOTYPE_FORMATS)
+,%str()
+))
+);
+
 
 %put NOTE: unloading package packageprototype END;

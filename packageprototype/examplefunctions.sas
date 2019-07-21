@@ -16,12 +16,13 @@
 %macro packageprototype_functions();
 
 %local _cmplib_;
-%let _cmplib_ = %sysfunc(compress(%sysfunc(getoption(cmplib)),%str(%(%))));
+options APPEND=(cmplib = WORK.PACKAGEPROTOTYPE_FUNCTIONS) ;
+%let _cmplib_ = %sysfunc(getoption(cmplib));
 %put NOTE:[&sysmacroname.] *&=_cmplib_*;
 
 options cmplib = _null_;
 
-PROC FCMP outlib = work.packageprototype.functions;
+PROC FCMP OUTLIB = WORK.PACKAGEPROTOTYPE_FUNCTIONS.FUNCTIONS;
   function f(x);
     return( x ** 2 );
   endsub;
@@ -33,9 +34,10 @@ PROC FCMP outlib = work.packageprototype.functions;
   function h(x);
     return( x ** 4 );
   endsub;
-run;
+RUN;
 
-options cmplib = (%unquote(%sysfunc(tranwrd(&_cmplib_.,%str(work.packageprototype),%str()))) work.packageprototype);
+
+options cmplib = &_cmplib_.;
 %let _cmplib_ = %sysfunc(getoption(cmplib));
 %put NOTE:[&sysmacroname.] *&=_cmplib_*;
 
@@ -49,7 +51,7 @@ proc sql;
   select memname, objname
   from dictionary.catalogs
   where 
-    objname = 'PACKAGEPROTOTYPE_FUNCTIONS'
+    objname = upcase('PACKAGEPROTOTYPE_FUNCTIONS')
     and objtype = 'MACRO'
     and libname  = 'WORK'
   order by memname, objname
