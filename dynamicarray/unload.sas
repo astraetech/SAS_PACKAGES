@@ -18,6 +18,7 @@ filename package list;
 data _null_;
   put "NOTE- " / ;
   put 'NOTE: The following macros are to be deleted:' /;
+  length macroname $ 32;
   do macroname = 
       'DYNARRAY',
       'APPENDTO',
@@ -26,7 +27,8 @@ data _null_;
       'LOOPEND',
       'GETVAL',
       'PUTVAL',
-      'RANGEOF';
+      'RANGEOF',
+      'CREATEDYNAMICFUNCTIONARRAY';
     put "NOTE- " macroname;
   end;
   put "NOTE- " / " "; 

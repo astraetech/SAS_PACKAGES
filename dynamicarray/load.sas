@@ -18,6 +18,7 @@ filename package list;
 data _null_;
   put "NOTE- " / ;
   put 'NOTE: The following macros are to be compiled:' /;
+  length macroname $ 32;
   do macroname = 
       'DYNARRAY',
       'APPENDTO',
