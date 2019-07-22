@@ -65,7 +65,7 @@ run;
 
 data _null_;
  set _last_ indsname = indsname;
- call execute (cats('options ps = ', ps, ' ls = ', ls, ';') );
+ call execute (catx(" ", 'options ps = ', ps, ' ls = ', ls, ';') );
  call execute ('proc delete data = ' !! indsname !! '; run;');
 run;
 
