@@ -34,7 +34,7 @@ data _null_;
     put "NOTE- " formatname;
   end;
   put "NOTE- " / " "; 
-  put 'NOTE: The following formats are elements of the packagePrototype package:' /;
+  put 'NOTE: The following functions are elements of the packagePrototype package:' /;
   do functionname = 
       'F',
       'G',
