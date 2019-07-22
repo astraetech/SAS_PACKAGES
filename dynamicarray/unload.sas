@@ -48,7 +48,8 @@ proc sql;
       'LOOPEND',
       'GETVAL',
       'PUTVAL',
-      'RANGEOF'
+      'RANGEOF',
+      'CREATEDYNAMICFUNCTIONARRAY'
       )
     and objtype = 'MACRO'
     and libname  = 'WORK'

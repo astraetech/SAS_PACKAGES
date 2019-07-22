@@ -119,7 +119,7 @@ data _null_;
  %rangeOf(ABC) 
   put lboundABC=  hboundABC=; 
   _rc_ = ABC.REMOVE(key:lboundABC); 
-  _rc_ = ABC.REMOVE(key:hboundABC) ;
+  _rc_ = ABC.REMOVE(key:hboundABC ; 
  
   do _I_ = lboundABC to hboundABC; 
    %getVal(test, ABC, _I_); 
@@ -127,6 +127,52 @@ data _null_;
   end; 
  
 run;
+ 
+/*#############################################################*/ 
+/*                                                             */ 
+/* createDynamicFunctionArray - dynamic numeric function-array */ 
+/*                                                             */ 
+/*#############################################################*/ 
+ 
+%createDynamicFunctionArray(ArrayABC); 
+ 
+options cmplib = work.DynamicFunctionArray; /* default location */ 
+ 
+%let zeros = 4; 
+data _null_1; 
+ 
+  _X_ = .; 
+  /* declare size - it's more optimal to assume 
+    some innitial size in advance (for N > 10000) */ 
+  call ArrayABC("A", 1e&zeros., _X_); 
+  put _X_= /; 
+ 
+  t = time(); 
+  do _I_ = 17 to 1e&zeros.; 
+    _X_ = _I_*10; 
+    call ArrayABC("I", _I_, _X_); 
+  end; 
+  t = time() - t; 
+  put t= / _X_= /; 
+ 
+  /* get the size info */ 
+  LB = .; HB = .; 
+  drop LB HB; 
+  call ArrayABC('D', LB, HB); 
+  put LB= HB= /; 
+ 
+  t = time(); 
+  do _I_ = HB to LB by -1; 
+    call ArrayABC('O', _I_, _X_); 
+    output; 
+    /*put _I_= _X_=;*/ 
+  end; 
+  t = time() - t; 
+  put t= / _X_= /; 
+ 
+  /* clear for further reuse */ 
+  call ArrayABC('C', ., .); 
+run; 
 ;;;;
 run;
 

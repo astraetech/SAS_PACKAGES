@@ -26,7 +26,9 @@ data _null_;
       'LOOPEND',
       'GETVAL',
       'PUTVAL',
-      'RANGEOF';
+      'RANGEOF',
+      'CREATEDYNAMICFUNCTIONARRAY'
+      ;
     put "NOTE- " macroname;
   end;
   put "NOTE- " / " "; 
@@ -34,5 +36,7 @@ data _null_;
 run;
 
 %include package(dynamicarray.sas) ;
+
+%include package(dynamicarraybyfunction.sas) ;
 
 %put NOTE: loading package dynamicArray END;
