@@ -1,6 +1,19 @@
-﻿
+/**###################################################################**/
+/*                                                                     */
+/*  Copyright Bartosz Jablonski, July 2019.                            */
+/*                                                                     */
+/*  Code is free and open source. If you want - you can use it.        */
+/*  But it comes with absolutely no warranty whatsoever.               */
+/*  If you cause any damage or something - it will be your own fault.  */
+/*  You've been warned! You are using it on your own risk.             */
+/*  However, if you decide to use it don't forget to mention author.   */
+/*  Bartosz Jablonski (yabwon@gmail.com)                               */
+/*                                                                     */
+/**###################################################################**/
 
-options cmplib = ();
+/* dynamicfunctionarray is a FCMP based approach to create 
+   dynamicaly alocated numerical array 
+*/
 
 %macro createDynamicFunctionArray(arrayName, debug=0, outlib = work.DynamicFunctionArray.package);
 proc fcmp outlib = &outlib.;
@@ -125,5 +138,3 @@ proc fcmp outlib = &outlib.;
   endsub;
 run;
 %mend createDynamicFunctionArray;
-
-
