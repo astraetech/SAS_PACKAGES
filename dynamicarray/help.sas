@@ -17,7 +17,8 @@ filename package list;
 
 data _null_;
   put "NOTE- " / ;
-  put 'NOTE: The following macros are elements of the dynamicArray package:' /;
+  put 'NOTE: The dynamicArray package, version 0.20190723' /;
+  put 'NOTE: The following macros are elements of the package:' /;
   do macroname = 
       'DYNARRAY',
       'APPENDTO',

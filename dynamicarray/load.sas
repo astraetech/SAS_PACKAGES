@@ -17,6 +17,7 @@ filename package list;
 
 data _null_;
   put "NOTE- " / ;
+  put 'NOTE: The dynamicArray package, version 0.20190723' /;
   put 'NOTE: The following macros are to be compiled:' /;
   length macroname $ 32;
   do macroname = 
@@ -28,11 +29,13 @@ data _null_;
       'GETVAL',
       'PUTVAL',
       'RANGEOF',
+      '',
       'CREATEDYNAMICFUNCTIONARRAY'
       ;
     put "NOTE- " macroname;
   end;
   put "NOTE- " / " "; 
+  put 'NOTE- Write %helpPackage(dynamicarray) for help.' / " ";
   put "NOTE- " / " ";
 run;
 

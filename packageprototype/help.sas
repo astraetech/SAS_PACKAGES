@@ -19,6 +19,7 @@ filename package list;
 data _null_;
   put "NOTE- " / ;
   put 'NOTE: The following macros are elements of the packagePrototype package:' /;
+  length macroname $ 32;
   do macroname = 
       'EXAMPLEMACRO1 ',
       'EXAMPLEMACRO2 ';
@@ -27,6 +28,7 @@ data _null_;
   put "NOTE- " / " "; 
   put "NOTE- " / ;
   put 'NOTE: The following formats are elements of the packagePrototype package:' /;
+  length formatname $ 32;
   do formatname = 
       'FRMT1_ ',
       'FRMT2_ ',
@@ -35,6 +37,7 @@ data _null_;
   end;
   put "NOTE- " / " "; 
   put 'NOTE: The following functions are elements of the packagePrototype package:' /;
+  length functionname $ 32;
   do functionname = 
       'F',
       'G',
