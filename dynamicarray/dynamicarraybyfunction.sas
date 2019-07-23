@@ -19,11 +19,12 @@
 proc fcmp outlib = &outlib.;
   subroutine &arrayName.(
       IO $     /* steering argument:
-                * O,o = Output   - get the data from an array
-                * I,i = Input    - insert the data into an array
-                * C,c = Clear    - reduce an array to a single empty cell
-                * A,a = Allocate - reserve space for array's width 
-                *                  and set starting value
+                * O,o = Output    - get the data from an array
+                * I,i = Input     - insert the data into an array
+                * C,c = Clear     - reduce an array to a single empty cell
+                * A,a = Allocate  - reserve space for array's width 
+                *                   and set starting value
+                * D,d = Dimention - returns minimal and maximal index
                 */
     , position /* for O(I) it is an array's index from(into) which data is get(put)
                 * for C ignored
@@ -123,8 +124,8 @@ proc fcmp outlib = &outlib.;
      */
     if IO = 'D' or IO = 'd' then
       do;
-        position = minposition;
-        value    = maxposition;
+        position = abs(minposition);
+        value    = abs(maxposition);
         %if &debug %then %do;
           _T_ = dim(TEMP);
           put "dim(TEMP)=" _T_;
