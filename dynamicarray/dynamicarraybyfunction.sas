@@ -84,7 +84,7 @@ proc fcmp outlib = &outlib.;
         TEMP[position] = value;
 
         maxposition = max( maxposition,  position);
-        minposition = max(-minposition, -position);
+        minposition = max( minposition, -position);
 
         %if &debug %then %do;
           _T_ = dim(TEMP);
@@ -133,8 +133,8 @@ proc fcmp outlib = &outlib.;
         return;
       end;
 
-
-    value = .;
+    position = .;
+    value    = .;
     return;
   endsub;
 run;
