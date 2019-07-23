@@ -112,7 +112,7 @@ data _null_;
      with index _I_ and data _ABCcell_ */ 
   %dynArray(ABC) 
  
-  /* declare empty character array GHI 
+  /* declare empty character (of length 12) array GHI 
      with index _I_ and data _GHIcell_ */ 
   %dynArray(GHI, type = $ 12) 
  

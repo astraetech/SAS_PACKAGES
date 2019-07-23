@@ -54,7 +54,7 @@ data _null_;
      with index _I_ and data _ABCcell_ */ 
   %dynArray(ABC) 
  
-  /* declare empty character array GHI 
+  /* declare empty character (of length 12) array GHI 
      with index _I_ and data _GHIcell_ */ 
   %dynArray(GHI, type = $ 12) 
  
@@ -135,8 +135,34 @@ run;
 /*                                                             */ 
 /*#############################################################*/ 
  
+/* The ArrayABC() call routine is cerated: */ 
 %createDynamicFunctionArray(ArrayABC); 
  
+data _null_; 
+  call ArrayABC( 
+      IO $     /* steering argument: 
+                * O,o = Output   - get the data from an array 
+                * I,i = Input    - insert the data into an array 
+                * C,c = Clear    - reduce an array to a single empty cell 
+                * A,a = Allocate - reserve space for array's width 
+                *                  and set starting value 
+                */ 
+    , position /* for O(I) it is an array's index from(into) which data is get(put) 
+                * for C ignored 
+                * for A sets value of maxposition (i.e. maximal position of the arrays's index than occured) 
+                *                 and minposition (i.e. minimal position of the arrays's index that occured) 
+                * for D returns minposition 
+                */ 
+    , value    /* for O it holds value retrieved from an array on a given position 
+                * for I gets maxposition info (i.e. maximal position of the arrays's index occured) 
+                * for C ignored 
+                * for A returns position 
+                * for D returns maxposition 
+                * othervise returns . 
+                */ 
+    ) 
+run; 
+
 options cmplib = work.DynamicFunctionArray; /* default location */ 
  
 %let zeros = 4; 
