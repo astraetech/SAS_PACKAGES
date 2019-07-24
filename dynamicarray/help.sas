@@ -27,7 +27,7 @@ data _null_;
       'LOOPEND',
       'GETVAL',
       'PUTVAL',
-      'RANGEOF'
+      'RANGEOF',
       '',
       'CRDFARRAY',
       'CRDHARRAY'
@@ -124,7 +124,7 @@ data _null_;
  %rangeOf(ABC)                                                                                                    
   put lboundABC=  hboundABC=;                                                                                     
   _rc_ = ABC.REMOVE(key:lboundABC);                                                                               
-  _rc_ = ABC.REMOVE(key:hboundABC ;                                                                               
+  _rc_ = ABC.REMOVE(key:hboundABC);                                                                               
                                                                                                                   
   do _I_ = lboundABC to hboundABC;                                                                                
    %getVal(test, ABC, _I_);                                                                                       
@@ -142,7 +142,10 @@ run;
 /* The ArrayABC() call routine is cerated: */                                                                     
 %crDFArray(ArrayABC);                                                                                             
                                                                                                                   
+options cmplib = work.DynamicFunctionArray; /* default location */                                                
+                                                                                                                  
 data _null_;                                                                                                      
+  IO = "D"; position =.; value=.;                                                                                 
   call ArrayABC(                                                                                                  
       IO       /* CHARACTER,                                                                                      
                 * steering argument:                                                                              
@@ -168,9 +171,9 @@ data _null_;
                 * othervise returns .                                                                             
                 */                                                                                                
     );                                                                                                            
+put IO= position= value=;                                                                                         
 run;                                                                                                              
                                                                                                                   
-options cmplib = work.DynamicFunctionArray; /* default location */                                                
                                                                                                                   
 %let zeros = 4;                                                                                                   
 data _null_1;                                                                                                     
@@ -244,70 +247,71 @@ run;
 /*                                                             */                                                 
 /*#############################################################*/                                                 
                                                                                                                   
-/* The ArrayABC() call routine is cerated: */  
+/* The ArrayABC() call routine is cerated: */                                                                     
+                                                                                                                  
+options cmplib = work.DynamicFunctionArray; %* default location *;                                                
+                                                                                                                  
+                                                                                                                  
 data _null_;                                                                                                      
-  call ArrayABC(
-      IO $     /* CHARACTER
-                * steering argument:
-                * O,o = Output    - get the data from an array
-                * I,i = Input     - insert the data into an array
-                * C,c = Clear     - reduce an array to an empty one
-                * L,l,H,h = Dimentions - return minimal and maximal poistion of index
-                */
-    , position /* NUMERIC
-                * for O(I) it is an array's index from(into) which data is get(put)
-                * for C ignored
-                * for L returns first position of index
-                * for H returns last position of index
-                * othervise does not modify value
-                */
-    , value    /* NUM/CHAR %qsysfunc(compress(&type., $, k))   
-                * for O it holds value retrieved from an array on a given position
-                * for I gets maxposition info (i.e. maximal position of the arrays's index occured)
-                * for C ignored
-                * for L returns first value of index
-                * for H returns last value of index
-                * othervise does not modify value
-                */
-    )                                                                                                            
-run;         
-
- 
-%crDHArray(ArrayABC, type = $ 12); 
-options cmplib = work.DynamicFunctionArray; %* default location *; 
- 
-%let zeros = 3; 
-data _null_1; 
- 
-  t = time(); 
-  do _I_ = -1e&zeros. to 1e&zeros.; 
-    _X_ = put(_I_*10, z12.); 
-    call ArrayABC("I", _I_, _X_); 
-  end; 
-  t = time() - t; 
-  put t= / _X_= /; 
- 
-  %* get the size info *; 
-  LB = 0; HB = 0; 
-  drop LB HB; 
-  call ArrayABC('L', LB, _X_); 
-  call ArrayABC('H', HB, _X_); 
-  put LB= HB= /; 
- 
-  t = time(); 
-  do _I_ = HB+1 to LB-1 by -1; 
-    call ArrayABC('O', _I_, _X_); 
-    output;  
-  end; 
-  t = time() - t; 
-  put t= / _X_= /; 
- 
-  _N_ = sleep(5,1);
-  %* clear for further reuse *; 
-  call ArrayABC('C', ., ''); 
-  _N_ = sleep(5,1);
-  
-run;                 
+  call ArrayABC(                                                                                                  
+      IO $     /* CHARACTER                                                                                       
+                * steering argument:                                                                              
+                * O,o = Output    - get the data from an array                                                    
+                * I,i = Input     - insert the data into an array                                                 
+                * C,c = Clear     - reduce an array to an empty one                                               
+                * L,l,H,h = Dimentions - return minimal and maximal poistion of index                             
+                */                                                                                                
+    , position /* NUMERIC                                                                                         
+                * for O(I) it is an array's index from(into) which data is get(put)                               
+                * for C ignored                                                                                   
+                * for L returns first position of index                                                           
+                * for H returns last position of index                                                            
+                * othervise does not modify value                                                                 
+                */                                                                                                
+    , value    /* NUM/CHAR %qsysfunc(compress(&type., $, k))                                                      
+                * for O it holds value retrieved from an array on a given position                                
+                * for I gets maxposition info (i.e. maximal position of the arrays's index occured)               
+                * for C ignored                                                                                   
+                * for L returns first value of index                                                              
+                * for H returns last value of index                                                               
+                * othervise does not modify value                                                                 
+                */                                                                                                
+    );                                                                                                            
+run;                                                                                                              
+                                                                                                                  
+                                                                                                                  
+%crDHArray(ArrayABC, type = $ 12);                                                                                
+                                                                                                                  
+%let zeros = 3;                                                                                                   
+data _null_1;                                                                                                     
+                                                                                                                  
+  t = time();                                                                                                     
+  do _I_ = -1e&zeros. to 1e&zeros.;                                                                               
+    _X_ = put(_I_*10, z12.);                                                                                      
+    call ArrayABC("I", _I_, _X_);                                                                                 
+  end;                                                                                                            
+  t = time() - t;                                                                                                 
+  put t= / _X_= /;                                                                                                
+                                                                                                                  
+  %* get the size info *;                                                                                         
+  LB = 0; HB = 0;                                                                                                 
+  drop LB HB;                                                                                                     
+  call ArrayABC('L', LB, _X_);                                                                                    
+  call ArrayABC('H', HB, _X_);                                                                                    
+  put LB= HB= /;                                                                                                  
+                                                                                                                  
+  t = time();                                                                                                     
+  do _I_ = HB+1 to LB-1 by -1;                                                                                    
+    call ArrayABC('O', _I_, _X_);                                                                                 
+    output;                                                                                                       
+  end;                                                                                                            
+  t = time() - t;                                                                                                 
+  put t= / _X_= /;                                                                                                
+                                                                                                                  
+  %* clear for further reuse *;                                                                                   
+  call ArrayABC('C', ., '');                                                                                      
+                                                                                                                  
+run;                                                                                                              
 ;;;;
 run;
 
