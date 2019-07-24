@@ -1,4 +1,4 @@
-﻿/**###################################################################**/
+/**###################################################################**/
 /*                                                                     */
 /*  Copyright Bartosz Jablonski, July 2019.                            */
 /*                                                                     */
@@ -15,28 +15,31 @@
    dynamicaly alocated numerical array 
 */
 
-%macro createDynamicFunctionArrayH(arrayName, type=8, debug=0, outlib = work.DynamicFunctionArray.package);
+%macro crDHArray(arrayName, type=8, debug=0, outlib = work.DynamicFunctionArray.package);
 proc fcmp outlib = &outlib.;
   subroutine &arrayName.(
-      IO $     /* steering argument:
+      IO $     /* CHARACTER
+                * steering argument:
                 * O,o = Output    - get the data from an array
                 * I,i = Input     - insert the data into an array
-                * C,c = Clear     - reduce an array to a single empty cell
+                * C,c = Clear     - reduce an array to an empty one
                 * L,l,H,h = Dimentions - return minimal and maximal poistion of index
                 */
-    , position /* for O(I) it is an array's index from(into) which data is get(put)
+    , position /* NUMERIC
+                * for O(I) it is an array's index from(into) which data is get(put)
                 * for C ignored
                 * for L returns first position of index
                 * for H returns last position of index
-                * othervise returns .
+                * othervise does not modify value
                 */
-    , value %qsysfunc(compress(&type., $, k))   
-               /* for O it holds value retrieved from an array on a given position
+    , value %qsysfunc(compress(&type., $, k)) 
+               /* NUMERIC/CHARACTER  
+                * for O it holds value retrieved from an array on a given position
                 * for I gets maxposition info (i.e. maximal position of the arrays's index occured)
                 * for C ignored
                 * for L returns first value of index
                 * for H returns last value of index
-                * othervise returns .
+                * othervise does not modify value
                 */
     );
     outargs position, value;
@@ -107,10 +110,10 @@ proc fcmp outlib = &outlib.;
     return;
   endsub;
 run;
-%mend createDynamicFunctionArrayH;
+%mend crDHArray;
 
 /*
-%createDynamicFunctionArrayH(ArrayABC, type = $ 12); 
+%crDHArray(ArrayABC, type = $ 12); 
 options cmplib = work.DynamicFunctionArray; %* default location *; 
  
 %let zeros = 6; 

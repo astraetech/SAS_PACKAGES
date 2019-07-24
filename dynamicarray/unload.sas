@@ -28,7 +28,10 @@ data _null_;
       'GETVAL',
       'PUTVAL',
       'RANGEOF',
-      'CREATEDYNAMICFUNCTIONARRAY';
+      '',
+      'CRDFARRAY',
+      'CRDHARRAY'
+      ;
     put "NOTE- " macroname;
   end;
   put "NOTE- " / " "; 
@@ -51,7 +54,8 @@ proc sql;
       'GETVAL',
       'PUTVAL',
       'RANGEOF',
-      'CREATEDYNAMICFUNCTIONARRAY'
+      'CRDFARRAY',
+      'CRDHARRAY'
       )
     and objtype = 'MACRO'
     and libname  = 'WORK'

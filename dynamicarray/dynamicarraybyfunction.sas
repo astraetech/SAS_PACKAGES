@@ -15,7 +15,7 @@
    dynamicaly alocated numerical array 
 */
 
-%macro createDynamicFunctionArray(arrayName, debug=0, outlib = work.DynamicFunctionArray.package);
+%macro crDFArray(arrayName, debug=0, outlib = work.DynamicFunctionArray.package);
 proc fcmp outlib = &outlib.;
   subroutine &arrayName.(
       IO $     /* steering argument:
@@ -160,4 +160,4 @@ proc fcmp outlib = &outlib.;
     return;
   endsub;
 run;
-%mend createDynamicFunctionArray;
+%mend crDFArray;

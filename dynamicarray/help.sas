@@ -17,7 +17,7 @@ filename package list;
 
 data _null_;
   put "NOTE- " / ;
-  put 'NOTE: The dynamicArray package, version 0.20190723' /;
+  put 'NOTE: The dynamicArray package, version 0.20190724' /;
   put 'NOTE: The following macros are elements of the package:' /;
   do macroname = 
       'DYNARRAY',
@@ -27,7 +27,11 @@ data _null_;
       'LOOPEND',
       'GETVAL',
       'PUTVAL',
-      'RANGEOF';
+      'RANGEOF'
+      '',
+      'CRDFARRAY',
+      'CRDHARRAY'
+      ;
     put "NOTE- " macroname;
   end;
   put "NOTE- " / " "; 
@@ -131,12 +135,12 @@ run;
                                                                                                                   
 /*#############################################################*/                                                 
 /*                                                             */                                                 
-/* createDynamicFunctionArray - dynamic numeric function-array */                                                 
+/* create Dynamic numeric Function Array - crDFArray           */                                                 
 /*                                                             */                                                 
 /*#############################################################*/                                                 
                                                                                                                   
 /* The ArrayABC() call routine is cerated: */                                                                     
-%createDynamicFunctionArray(ArrayABC);                                                                            
+%crDFArray(ArrayABC);                                                                                             
                                                                                                                   
 data _null_;                                                                                                      
   call ArrayABC(                                                                                                  
@@ -204,35 +208,106 @@ data _null_1;
 run;                                                                                                              
                                                                                                                   
                                                                                                                   
-%createDynamicFunctionArray(ArrayXYZ);                                                                            
+%crDFArray(ArrayXYZ);                                                                                             
                                                                                                                   
 options cmplib=work.DynamicFunctionArray;                                                                         
 data test;                                                                                                        
                                                                                                                   
-	xx = 42;                                                                                                        
+  xx = 42;                                                                                                        
   do a = -8 to 8;                                                                                                 
     b=a+3;                                                                                                        
-    	call ArrayXYZ("A", a, b); /* Allocate */                                                                    
-    	call ArrayXYZ("D", L, H); /* Get dimentions */                                                              
-    	put _all_;                                                                                                  
+      call ArrayXYZ("A", a, b); /* Allocate */                                                                    
+      call ArrayXYZ("D", L, H); /* Get dimentions */                                                              
+      put _all_;                                                                                                  
                                                                                                                   
       call ArrayXYZ("I", a-3, 17); /* Insert below Low */                                                         
       call ArrayXYZ("I", b+3, 17); /* Insert above High */                                                        
       call ArrayXYZ("D", L, H);                                                                                   
                                                                                                                   
-    	do i = L-1 to H+1;                                                                                          
-    	  call ArrayXYZ("O", i, xx); /* Output data */                                                              
-    	  put i= xx=;                                                                                               
-    	end;                                                                                                        
-    	put _all_;                                                                                                  
+      do i = L-1 to H+1;                                                                                          
+        call ArrayXYZ("O", i, xx); /* Output data */                                                              
+        put i= xx=;                                                                                               
+      end;                                                                                                        
+      put _all_;                                                                                                  
       put ;                                                                                                       
    end;                                                                                                           
                                                                                                                   
   /* warning - wrong range */                                                                                     
   call ArrayXYZ("A", 3, -5);                                                                                      
   call ArrayXYZ("D", L, H);                                                                                       
-	put _all_;                                                                                                      
+  put _all_;                                                                                                      
 run;                                                                                                              
+                                                                                                                  
+/*#############################################################*/                                                 
+/*                                                             */                                                 
+/* create Dynamic Hash Function Array - crDHArray              */                                                 
+/*                                                             */                                                 
+/*#############################################################*/                                                 
+                                                                                                                  
+/* The ArrayABC() call routine is cerated: */  
+data _null_;                                                                                                      
+  call ArrayABC(
+      IO $     /* CHARACTER
+                * steering argument:
+                * O,o = Output    - get the data from an array
+                * I,i = Input     - insert the data into an array
+                * C,c = Clear     - reduce an array to an empty one
+                * L,l,H,h = Dimentions - return minimal and maximal poistion of index
+                */
+    , position /* NUMERIC
+                * for O(I) it is an array's index from(into) which data is get(put)
+                * for C ignored
+                * for L returns first position of index
+                * for H returns last position of index
+                * othervise does not modify value
+                */
+    , value    /* NUM/CHAR %qsysfunc(compress(&type., $, k))   
+                * for O it holds value retrieved from an array on a given position
+                * for I gets maxposition info (i.e. maximal position of the arrays's index occured)
+                * for C ignored
+                * for L returns first value of index
+                * for H returns last value of index
+                * othervise does not modify value
+                */
+    )                                                                                                            
+run;         
+
+ 
+%crDHArray(ArrayABC, type = $ 12); 
+options cmplib = work.DynamicFunctionArray; %* default location *; 
+ 
+%let zeros = 3; 
+data _null_1; 
+ 
+  t = time(); 
+  do _I_ = -1e&zeros. to 1e&zeros.; 
+    _X_ = put(_I_*10, z12.); 
+    call ArrayABC("I", _I_, _X_); 
+  end; 
+  t = time() - t; 
+  put t= / _X_= /; 
+ 
+  %* get the size info *; 
+  LB = 0; HB = 0; 
+  drop LB HB; 
+  call ArrayABC('L', LB, _X_); 
+  call ArrayABC('H', HB, _X_); 
+  put LB= HB= /; 
+ 
+  t = time(); 
+  do _I_ = HB+1 to LB-1 by -1; 
+    call ArrayABC('O', _I_, _X_); 
+    output;  
+  end; 
+  t = time() - t; 
+  put t= / _X_= /; 
+ 
+  _N_ = sleep(5,1);
+  %* clear for further reuse *; 
+  call ArrayABC('C', ., ''); 
+  _N_ = sleep(5,1);
+  
+run;                 
 ;;;;
 run;
 
