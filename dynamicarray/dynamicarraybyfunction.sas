@@ -1,3 +1,4 @@
+/* dynamicarraybyfunction.sas */
 /**###################################################################**/
 /*                                                                     */
 /*  Copyright Bartosz Jablonski, July 2019.                            */
