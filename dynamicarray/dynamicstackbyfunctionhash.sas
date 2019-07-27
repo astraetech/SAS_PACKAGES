@@ -21,15 +21,17 @@ proc fcmp outlib = &outlib.;
   subroutine &stackName.(
       IO $     /* CHARACTER
                 * steering argument:
-                * O,o = Output    - pop/get/output the data from a stack
+                * O,o = Output    - pop/get/output the data from a stack and removes it
                 * I,i = Input     - push/put/insert the data into a stack
                 * C,c = Clear     - reduce a stack to an empty one
+                * P,p = Peek      - peek the data from a stack and NOT removes it
                 */
     , value %qsysfunc(compress(&type., $, k)) 
                /* NUMERIC/CHARACTER  
                 * for O it holds a value popped from a stack
                 * for I it holds a value to be pushed into a stack
                 * for C ignored
+                * for P it holds a value peeked from a stack
                 * othervise does not modify value
                 */
     );
@@ -67,6 +69,19 @@ proc fcmp outlib = &outlib.;
         %if &debug %then %do;
           _T_ = H.num_items();
           put "NOTE:[&stackName.] Debug" "dim(TEMP)=" _T_ "value=" value "position=" position;
+        %end;
+        return;
+      end;
+
+    /* Peek - peeks the data from a stack without removing */
+    if IO = 'P' or IO = 'p' then
+      do;
+        call missing(value);
+        _RC_ = I.last();
+        _RC_ = I.next();
+        %if &debug %then %do;
+          _T_ = H.num_items();
+          put "NOTE:[&stackName.] Debug" "dim(TEMP)=" _T_ "TEMP[position]=" value;
         %end;
         return;
       end;
