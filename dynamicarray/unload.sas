@@ -30,7 +30,10 @@ data _null_;
       'RANGEOF',
       '',
       'CRDFARRAY',
-      'CRDHARRAY'
+      'CRDHARRAY',
+      'CRDHSTACK',
+      'CRDHFIFO',
+      'CRDHORDSTACK'
       ;
     put "NOTE- " macroname;
   end;
@@ -55,7 +58,10 @@ proc sql;
       'PUTVAL',
       'RANGEOF',
       'CRDFARRAY',
-      'CRDHARRAY'
+      'CRDHARRAY',
+      'CRDHSTACK',
+      'CRDHFIFO',
+      'CRDHORDSTACK'
       )
     and objtype = 'MACRO'
     and libname  = 'WORK'

@@ -36,7 +36,6 @@ proc fcmp outlib = &outlib.;
                 * for C ignored
                 * for A sets value of maxposition (i.e. maximal position of the arrays's index than occured)
                 * for D returns maxposition
-                * othervise returns .
                 */
     );
     outargs position, value;
@@ -59,7 +58,7 @@ proc fcmp outlib = &outlib.;
 
         %if &debug %then %do;
           _T_ = dim(TEMP);
-          put "dim(TEMP)=" _T_ "TEMP[position]=" TEMP[position];
+          put "NOTE:[&arrayName.] Debug O:" "dim(TEMP)=" _T_ "TEMP[position]=" TEMP[position];
         %end;
         return;
       end;
@@ -96,7 +95,7 @@ proc fcmp outlib = &outlib.;
 
         %if &debug %then %do;
           _T_ = dim(TEMP);
-          put "dim(TEMP)=" _T_ "value=" value "position=" position "TEMP[position]=" TEMP[position];
+          put "NOTE:[&arrayName.] Debug I:" "dim(TEMP)=" _T_ "value=" value "position=" position "TEMP[position]=" TEMP[position];
         %end;
         return;
       end;
@@ -119,7 +118,7 @@ proc fcmp outlib = &outlib.;
 
             %if &debug %then %do;
               _T_ = dim(TEMP);
-              put "dim(TEMP)=" _T_;
+              put "NOTE:[&arrayName.] Debug A:" "dim(TEMP)=" _T_;
             %end;
             return;
           end;
@@ -150,13 +149,12 @@ proc fcmp outlib = &outlib.;
         value    = maxposition;
         %if &debug %then %do;
           _T_ = dim(TEMP);
-          put "dim(TEMP)=" _T_;
+          put "NOTE:[&arrayName.] Debug D:" "dim(TEMP)=" _T_;
         %end;
         return;
       end;
 
-    position = .;
-    value    = .;
+    put "NOTE:IO parameter value" IO "is unknown. Use: O, I, C, A, or D.";
     return;
   endsub;
 run;

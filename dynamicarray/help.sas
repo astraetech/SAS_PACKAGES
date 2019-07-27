@@ -17,7 +17,7 @@ filename package list;
 
 data _null_;
   put "NOTE- " / ;
-  put 'NOTE: The dynamicArray package, version 0.20190724' /;
+  put 'NOTE: The dynamicArray package, version 0.20190727' /;
   put 'NOTE: The following macros are elements of the package:' /;
   do macroname = 
       'DYNARRAY',
@@ -30,7 +30,10 @@ data _null_;
       'RANGEOF',
       '',
       'CRDFARRAY',
-      'CRDHARRAY'
+      'CRDHARRAY',
+      'CRDHSTACK',
+      'CRDHFIFO',
+      'CRDHORDSTACK'
       ;
     put "NOTE- " macroname;
   end;
@@ -312,6 +315,25 @@ data _null_1;
   call ArrayABC('C', ., '');                                                                                      
                                                                                                                   
 run;                                                                                                              
+
+/*#############################################################*/                                                 
+/*                                                             */                                                 
+/* create Dynamic Hash Function Stack - crDHStack              */                                                 
+/*                                                             */                                                 
+/*#############################################################*/
+
+/*#############################################################*/                                                 
+/*                                                             */                                                 
+/* create Dynamic Hash Function Queue - crDHQueue              */                                                 
+/*                                                             */                                                 
+/*#############################################################*/
+
+/*#############################################################*/                                                 
+/*                                                             */                                                 
+/* create Dynamic Hash Function Ordered Stack - crDHOrdStack   */                                                 
+/*                                                             */                                                 
+/*#############################################################*/
+
 ;;;;
 run;
 
