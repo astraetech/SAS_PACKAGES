@@ -21,8 +21,8 @@ proc fcmp outlib = &outlib.;
   subroutine &fifoName.(
       IO $     /* CHARACTER
                 * steering argument:
-                * O,o = Output    - pop/get/output the data from a fifo
-                * I,i = Input     - push/put/insert the data into a fifo
+                * O,o = Output    - pop/get/output/dequeue the data from a fifo
+                * I,i = Input     - push/put/insert/enqueue the data into a fifo
                 * C,c = Clear     - reduce a fifo to an empty one
                 * P,p = Peek      - peek the data from a queue and NOT removes it
                 */

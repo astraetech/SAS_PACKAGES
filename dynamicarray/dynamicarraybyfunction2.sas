@@ -1,4 +1,4 @@
-/* dynamicarraybyfunction.sas */
+/* dynamicarraybyfunction2.sas */
 /**###################################################################**/
 /*                                                                     */
 /*  Copyright Bartosz Jablonski, July 2019.                            */
@@ -16,7 +16,7 @@
    dynamicaly alocated numerical array 
 */
 
-%macro crDFArray(arrayName, debug=0, outlib = work.DynamicFunctionArray.package);
+%macro crDFArray2(arrayName, debug=0, resizefactor=4999, outlib = work.DynamicFunctionArray.package);
 proc fcmp outlib = &outlib.;
   subroutine &arrayName.(
       IO $     /* steering argument:
@@ -53,53 +53,85 @@ proc fcmp outlib = &outlib.;
     static minposition 1; /* keep track of minimal position of the arrays's index occured */
     static offset 0;      /* if array lower bound is less than 1 keep value of shift */
     
+    static globalmaxposition 1; /* keep track of globalmaximal position of the arrays's boundary */
+    static globalminposition 1; /* keep track of globalminimal position of the arrays's boundary */
+    
     /* Output - get the data from an array */
     if IO = 'O' or IO = 'o' then
       do;
         if (minposition <= position <= maxposition) 
-          then value = TEMP[position+offset];
+          then value = TEMP[position + offset];
           else value = .;
 
         %if &debug %then %do;
           _T_ = dim(TEMP);
-          put "NOTE:[&arrayName.] Debug O:" "dim(TEMP)=" _T_ "TEMP[position]=" TEMP[position];
+          put "NOTE:[&arrayName.] Debug O:" "dim(TEMP)=" _T_ "TEMP[position]=" TEMP[position + offset];
         %end;
         return;
       end;
     
     /* Input - insert the data into an array */
     if IO = 'I' or IO = 'i' then
-      do;   
-        if not(minposition <= position <= maxposition) then 
-          do;
+      do;
+        /* to avoid resizeing when every new element is added */ 
+        if not(globalminposition <= position <= globalmaxposition) then 
+          do; 
+            /* alocate temporary BaCKuP memory */ 
+            call dynamic_array(BCKP, dim(TEMP)); 
             do _I_ = 1 to dim(TEMP);
               BCKP[_I_] = TEMP[_I_];
             end;
             
             /* shift data acordingly */
-            if position < minposition then shift = abs(position - minposition);
-                                      else shift = 0;
+            if position < globalminposition 
+              then shift = abs(position - globalminposition) + &resizefactor.;
+              else shift = 0;
 
-            minposition = min(minposition, position);
-            maxposition = max(maxposition, position);
+            globalminposition = min(globalminposition, position) - &resizefactor.*(position < globalminposition);
+            globalmaxposition = max(globalmaxposition, position) + &resizefactor.*(position > globalmaxnposition);
+            
+            /* to handle the 65535 issue */
+            _RESIZE_ = abs(globalmaxposition - globalminposition + 1);
+            if _RESIZE_ = 65535 then 
+              do;
+                _RESIZE_ = _RESIZE_ + 1;
+                globalmaxposition = globalmaxposition + 1;
+              end;
  
-            call dynamic_array(TEMP, abs(maxposition - minposition + 1));
+            call dynamic_array(TEMP, _RESIZE_);
+            
+            %if &debug %then %do;
+              _T_ = dim(TEMP); 
+              put "NOTE:[&arrayName.] Debug I: 0): dim(TEMP)=" _T_; 
+              put "NOTE:[&arrayName.] Debug I: 1): min=" minposition "and max=" maxposition; 
+              put "NOTE:[&arrayName.] Debug I: 2): gmin=" globalminposition "and gmax=" globalmaxposition;
+              put "NOTE:[&arrayName.] Debug I: 3): position=" position "shift=" shift;
+            %end;
 
             do _I_ = 1 to dim(BCKP);
               TEMP[_I_ + shift] = BCKP[_I_];
             end;
             
-            offset = 1 - minposition;
+            offset = 1 - globalminposition;
 
-            call dynamic_array(BCKP, dim(TEMP));
-            call fillmatrix(BCKP, .); 
+            call dynamic_array(BCKP, 1);
+            %if &debug %then %do;
+              put "NOTE:[&arrayName.] Debug I: offset=" offset;
+            %end;
+          end;
+
+        if not(minposition <= position <= maxposition) then 
+          do;
+            minposition = min(minposition, position);
+            maxposition = max(maxposition, position);
           end;
 
         TEMP[position + offset] = value;
 
         %if &debug %then %do;
           _T_ = dim(TEMP);
-          put "NOTE:[&arrayName.] Debug I:" "dim(TEMP)=" _T_ "value=" value "position=" position "TEMP[position]=" TEMP[position];
+          put "NOTE:[&arrayName.] Debug I: min=" minposition "and max=" maxposition;
+          put "NOTE:[&arrayName.] Debug I: dim(TEMP)=" _T_ "value=" value "position=" position "TEMP[position]=" TEMP[position + offset];
         %end;
         return;
       end;
@@ -113,12 +145,12 @@ proc fcmp outlib = &outlib.;
           do;
             call dynamic_array(TEMP, abs(value - position + 1));
             call fillmatrix(TEMP, .); 
-            call dynamic_array(BCKP, dim(TEMP));
-            call fillmatrix(BCKP, .); 
 
-            maxposition = value;
-            minposition = position;
-            offset      = 1 - position;
+            maxposition       = value;
+            minposition       = position;
+            globalmaxposition = value;
+            globalminposition = position;
+            offset            = 1 - position;
 
             %if &debug %then %do;
               _T_ = dim(TEMP);
@@ -131,7 +163,13 @@ proc fcmp outlib = &outlib.;
             put "WARNING:" "Array's lower bound must be less or equal than upper bound.";
             put "        " "Current values are: lower =" position " upper =" value;
             put "        " "One element array created.";
-            IO = 'C';
+            call dynamic_array(TEMP, 1);
+            maxposition       = 1;
+            minposition       = 1;
+            globalmaxposition = 1;
+            globalminposition = 1;
+            TEMP[1]           = .;
+            return;
           end;
       end;
 
@@ -139,9 +177,11 @@ proc fcmp outlib = &outlib.;
     if IO = 'C' or IO = 'c' then
       do;
         call dynamic_array(TEMP, 1);
-        maxposition = 1;
-        minposition = 1;
-        TEMP[1]     = .;
+        maxposition       = 1;
+        minposition       = 1;
+        globalmaxposition = 1;
+        globalminposition = 1;
+        TEMP[1]           = .;
         return;
       end;
 
@@ -164,7 +204,7 @@ proc fcmp outlib = &outlib.;
       do;
         value = .;
         cnt   = 0;
-        
+
         select(position);
           when (1, 2, 5) 
             do; /* Sum, Average, NonMiss */
@@ -193,4 +233,4 @@ proc fcmp outlib = &outlib.;
     return;
   endsub;
 run;
-%mend crDFArray;
+%mend crDFArray2;
