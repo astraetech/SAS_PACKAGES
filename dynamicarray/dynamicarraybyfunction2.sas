@@ -198,7 +198,7 @@ proc fcmp outlib = &outlib.;
         return;
       end;
 
-    /* Statistic - returns selected statistic 
+    /* Statistics - returns selected statistics 
      */
     if IO = 'S' or IO = 's' then
       do;

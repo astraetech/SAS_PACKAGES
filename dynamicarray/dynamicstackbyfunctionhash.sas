@@ -25,6 +25,9 @@ proc fcmp outlib = &outlib.;
                 * I,i = Input     - push/put/insert the data into a stack
                 * C,c = Clear     - reduce a stack to an empty one
                 * P,p = Peek      - peek the data from a stack and NOT removes it
+                * S,s = Summary   - calculate basic summary,
+                *                   for numeric: 1=Sum, 2=Average, 5=NumberOfNonMissing, 6=StackHeight
+                *                   for character: only stack height
                 */
     , value %qsysfunc(compress(&type., $, k)) 
                /* NUMERIC/CHARACTER  
@@ -32,6 +35,7 @@ proc fcmp outlib = &outlib.;
                 * for I it holds a value to be pushed into a stack
                 * for C ignored
                 * for P it holds a value peeked from a stack
+                * for S returns calculated summary value
                 * othervise does not modify value
                 */
     );
@@ -44,6 +48,14 @@ proc fcmp outlib = &outlib.;
     _RC_ = H.defineData("value");
     _RC_ = H.defineDone();
     declare hiter I("H"); 
+
+    static _sum_ .;
+    static _cnt_ .;
+    /* TODO: figure out smart way for min and max */
+    /*
+    static _min_ .;
+    static _max_ .;
+    */
     
     /* Output - get the data from a stack */
     if IO = 'O' or IO = 'o' then
@@ -51,7 +63,19 @@ proc fcmp outlib = &outlib.;
         call missing(value);
         _RC_ = I.last();
         _RC_ = I.next();
+
+        %if %qsysfunc(compress(&type., $, k))=$ %then /* character type */
+          %do; 
+            /* since value is a character type then do nothing */
+          %end;
+        %else /* numeric type */
+          %do;
+            _sum_ = sum(_sum_, -(value));
+            _cnt_ = sum(_cnt_, -(value > .z));
+          %end;
+
         _RC_ = H.remove();
+
         %if &debug %then %do;
           _T_ = H.num_items();
           put "NOTE:[&stackName.] Debug" "dim(TEMP)=" _T_ "TEMP[position]=" value;
@@ -65,6 +89,16 @@ proc fcmp outlib = &outlib.;
         
         position = H.num_items() + 1;
         _RC_ = H.replace();
+
+        %if %qsysfunc(compress(&type., $, k))=$ %then /* character type */
+          %do; 
+            /* since value is a character type then do nothing */
+          %end;
+        %else /* numeric type */
+          %do; 
+            _sum_ = sum(_sum_, (value));
+            _cnt_ = sum(_cnt_, (value > .z));
+          %end;
 
         %if &debug %then %do;
           _T_ = H.num_items();
@@ -89,11 +123,34 @@ proc fcmp outlib = &outlib.;
     /* Clear - reduce a stack to a empty one */
     if IO = 'C' or IO = 'c' then
       do;
-         _RC_ = H.clear();
+        _RC_ = H.clear();
+        _sum_ = .;
+        _cnt_ = .;
         return;
       end;
 
-    put "NOTE:IO parameter value" IO "is unknown. Use: O, I, or C.";
+    /* Statistic - returns selected statistic */
+    if IO = 'S' or IO = 's' then
+      do;
+        %if %qsysfunc(compress(&type., $, k))=$ %then /* character type */
+          %do; 
+            value = put(H.num_items(), best32.); 
+          %end;
+        %else /* numeric type */
+          %do; 
+            _tmp_ = value;
+            select(_tmp_);
+              when (1) value = if H.num_items() then _sum_ else .; /* Sum */
+              when (2) value = divide(_sum_, _cnt_); /* Average */
+              when (5) value = _cnt_; /* NonMiss */
+              when (6) value = H.num_items(); /* StackHeight */
+              otherwise value = .;
+            end;
+          %end;
+        return;
+      end;
+
+    put "NOTE:IO parameter value" IO "is unknown. Use: O, I, P, S, or C.";
     return;
   endsub;
 run;
