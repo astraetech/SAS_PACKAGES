@@ -16,7 +16,7 @@
    dynamicaly alocated ordered stack 
 */
 
-%macro crDHOrdStack(stackName, type=8, order=A /*A or D*/, debug=0, outlib = work.DynamicFunctionArray.package);
+%macro crDHOrdStack(stackName, type=8, order=A /*A or D*/, debug=0, outlib = work.DynamicFunctionArray.package, hexp=8);
 proc fcmp outlib = &outlib.;
   subroutine &stackName.(
       IO $     /* CHARACTER
@@ -42,7 +42,7 @@ proc fcmp outlib = &outlib.;
 
     length position positionTMP 8 value &type.;
     static position 0;
-    declare hash H(ordered:"&order.", duplicate:"R");
+    declare hash H(ordered:"&order.", duplicate:"R", hashexp:&hexp.);
     _RC_ = H.defineKey("value");
     _RC_ = H.defineKey("position");
     _RC_ = H.defineDone();

@@ -16,7 +16,7 @@
    dynamicaly alocated numerical array 
 */
 
-%macro crDHArray(arrayName, type=8, debug=0, outlib = work.DynamicFunctionArray.package);
+%macro crDHArray(arrayName, type=8, debug=0, outlib = work.DynamicFunctionArray.package, hexp=8);
 proc fcmp outlib = &outlib.;
   subroutine &arrayName.(
       IO $     /* CHARACTER
@@ -46,7 +46,7 @@ proc fcmp outlib = &outlib.;
     outargs position, value;
 
     length position 8 value &type.;
-    declare hash H(ordered:"A", duplicate:"R");
+    declare hash H(ordered:"A", duplicate:"R", hashexp:&hexp.);
     _RC_ = H.defineKey("position");
     _RC_ = H.defineData("position");
     _RC_ = H.defineData("value");

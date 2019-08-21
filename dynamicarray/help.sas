@@ -18,7 +18,7 @@ filename package list;
 
 data _null_;
   put "NOTE- " / ;
-  put 'NOTE: The dynamicArray package, version 0.20190727' /;
+  put 'NOTE: The dynamicArray package, version 0.20190821' /;
   put 'NOTE: The following macros are elements of the package:' /;
   do macroname = 
       'DYNARRAY',
@@ -31,6 +31,7 @@ data _null_;
       'RANGEOF',
       '',
       'CRDFARRAY',
+      'CRDFARRAY2',
       'CRDHARRAY',
       'CRDHSTACK',
       'CRDHFIFO',
@@ -54,7 +55,13 @@ data _null_;
   input ;
   putlog "NOTE-" _infile_;
 cards4;
-/* dynamic Array package - an example of use */                                                                   
+/*#############################################################*/                                                 
+/*                                                             */                                                 
+/* Set of Macros for Dynamic Array package                     */                                                 
+/*                                                             */                                                 
+/*#############################################################*/                                                 
+                                                                                                                  
+/* An example of use */                                                                                           
 options mprint source notes;                                                                                      
 data _null_;                                                                                                      
                                                                                                                   
@@ -258,7 +265,7 @@ options cmplib = work.DynamicFunctionArray; %* default location *;
                                                                                                                   
 data _null_;                                                                                                      
   call ArrayABC(                                                                                                  
-      IO $     /* CHARACTER                                                                                       
+      IO       /* $ CHARACTER                                                                                     
                 * steering argument:                                                                              
                 * O,o = Output    - get the data from an array                                                    
                 * I,i = Input     - insert the data into an array                                                 
@@ -323,18 +330,97 @@ run;
 /*                                                             */                                                 
 /*#############################################################*/
 
+/* The StackABC() call routine is cerated: */                                                                     
+                                                                                                                  
+options cmplib = work.DynamicFunctionArray; %* default location *;                                                
+                                                                                                                  
+                                                                                                                  
+data _null_;                                                                                                      
+  call StackABC( 
+      IO       /* $ CHARACTER
+                * steering argument:
+                * O,o = Output    - pop/get/output the data from a stack and removes it
+                * I,i = Input     - push/put/insert the data into a stack
+                * C,c = Clear     - reduce a stack to an empty one
+                * P,p = Peek      - peek the data from a stack and NOT removes it
+                * S,s = Summary   - calculate basic summary,
+                *                   for numeric: 1=Sum, 2=Average, 5=NumberOfNonMissing, 6=StackHeight
+                *                   for character: only stack height
+                */
+    , value    /* NUMERIC/CHARACTER %qsysfunc(compress(&type., $, k)) 
+                * for O it holds a value popped from a stack
+                * for I it holds a value to be pushed into a stack
+                * for C ignored
+                * for P it holds a value peeked from a stack
+                * for S returns calculated summary value
+                * othervise does not modify value
+                */
+    );
 /*#############################################################*/                                                 
 /*                                                             */                                                 
-/* create Dynamic Hash Function Queue - crDHQueue              */                                                 
+/* create Dynamic Hash Function Queue (FIFO) - crDHQueue       */                                                 
 /*                                                             */                                                 
 /*#############################################################*/
 
+/* The QueueABC() call routine is cerated: */                                                                     
+                                                                                                                  
+options cmplib = work.DynamicFunctionArray; %* default location *;                                                
+                                                                                                                  
+                                                                                                                  
+data _null_;                                                                                                      
+  call QueueABC( 
+      IO       /* $ CHARACTER
+                * steering argument:
+                * O,o = Output    - pop/get/output/dequeue the data from a fifo
+                * I,i = Input     - push/put/insert/enqueue the data into a fifo
+                * C,c = Clear     - reduce a fifo to an empty one
+                * P,p = Peek      - peek the data from a queue and NOT removes it
+                * S,s = Summary   - calculate basic summary,
+                *                   for numeric: 1=Sum, 2=Average, 5=NumberOfNonMissing, 6=QueueLength
+                *                   for character: only queue length
+                */
+    , value    /* NUMERIC/CHARACTER %qsysfunc(compress(&type., $, k)) 
+                * for O it holds a value popped from a fifo
+                * for I it holds a value to be pushed into a fifo
+                * for C ignored
+                * for P it holds a value peeked from a stack
+                * for S returns calculated summary value
+                * othervise does not modify value
+                */
+    );                                                                                                            
+                                                                                                                  
 /*#############################################################*/                                                 
 /*                                                             */                                                 
 /* create Dynamic Hash Function Ordered Stack - crDHOrdStack   */                                                 
 /*                                                             */                                                 
-/*#############################################################*/
-
+/*#############################################################*/                                                 
+                                                                                                                  
+/* The OrderedStackABC() call routine is cerated: */                                                              
+                                                                                                                  
+options cmplib = work.DynamicFunctionArray; %* default location *;                                                
+                                                                                                                  
+                                                                                                                  
+data _null_;                                                                                                      
+  call OrderedStackABC( 
+      IO       /* $ CHARACTER
+                * steering argument:
+                * O,o = Output    - pop/get/output the data from a stack and removes it
+                * I,i = Input     - push/put/insert the data into a stack
+                * C,c = Clear     - reduce a stack to an empty one
+                * P,p = Peek      - peek the data from a stack and NOT removes it
+                * S,s = Summary   - calculate basic summary,
+                *                   for numeric: 1=Sum, 2=Average, 5=NumberOfNonMissing, 6=StackHeight
+                *                   for character: only stack height
+                */
+    , value    /* NUMERIC/CHARACTER %qsysfunc(compress(&type., $, k)) 
+                * for O it holds a value popped from a stack
+                * for I it holds a value to be pushed into a stack
+                * for C ignored
+                * for P it holds a value peeked from a stack
+                * for S returns calculated summary value
+                * othervise does not modify value
+                */
+    );
 ;;;;
 run;
 

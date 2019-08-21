@@ -18,7 +18,7 @@ filename package list;
 
 data _null_;
   put "NOTE- " / ;
-  put 'NOTE: The dynamicArray package, version 0.20190727' /;
+  put 'NOTE: The dynamicArray package, version 0.20190821' /;
   put 'NOTE: The following macros are to be compiled:' /;
   length macroname $ 32;
   do macroname = 
@@ -32,6 +32,7 @@ data _null_;
       'RANGEOF',
       '',
       'CRDFARRAY',
+      'CRDFARRAY2',
       'CRDHARRAY',
       'CRDHSTACK',
       'CRDHFIFO',
@@ -47,6 +48,8 @@ run;
 %include package(dynamicarray.sas) ;
 
 %include package(dynamicarraybyfunction.sas) ;
+
+%include package(dynamicarraybyfunction2.sas) ;
 
 %include package(dynamicarraybyfunctionhash.sas) ;
 

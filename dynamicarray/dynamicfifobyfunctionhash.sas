@@ -16,7 +16,7 @@
    dynamicaly alocated "first in first out" queue 
 */
 
-%macro crDHQueue(fifoName, type=8, debug=0, outlib = work.DynamicFunctionArray.package);
+%macro crDHQueue(fifoName, type=8, debug=0, outlib = work.DynamicFunctionArray.package, hexp=8);
 proc fcmp outlib = &outlib.;
   subroutine &fifoName.(
       IO $     /* CHARACTER
@@ -26,8 +26,8 @@ proc fcmp outlib = &outlib.;
                 * C,c = Clear     - reduce a fifo to an empty one
                 * P,p = Peek      - peek the data from a queue and NOT removes it
                 * S,s = Summary   - calculate basic summary,
-                *                   for numeric: 1=Sum, 2=Average, 5=NumberOfNonMissing, 6=StackHeight
-                *                   for character: only stack height
+                *                   for numeric: 1=Sum, 2=Average, 5=NumberOfNonMissing, 6=QueueLength
+                *                   for character: only queue length
                 */
     , value %qsysfunc(compress(&type., $, k)) 
                /* NUMERIC/CHARACTER  
@@ -42,7 +42,7 @@ proc fcmp outlib = &outlib.;
     outargs value;
 
     length position 8 value &type. valueTMP &type.;
-    declare hash H(ordered:"A", duplicate:"R");
+    declare hash H(ordered:"A", duplicate:"R", hashexp:&hexp.);
     _RC_ = H.defineKey("position");
     _RC_ = H.defineData("position");
     _RC_ = H.defineData("value");
