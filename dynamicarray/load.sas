@@ -35,7 +35,7 @@ data _null_;
       'CRDFARRAY2',
       'CRDHARRAY',
       'CRDHSTACK',
-      'CRDHFIFO',
+      'CRDHQUEUE',
       'CRDHORDSTACK'
       ;
     put "NOTE- " macroname;
