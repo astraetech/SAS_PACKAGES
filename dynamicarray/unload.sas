@@ -35,7 +35,8 @@ data _null_;
       'CRDHARRAY',
       'CRDHSTACK',
       'CRDHQUEUE',
-      'CRDHORDSTACK'
+      'CRDHORDSTACK',
+      'CRDHPRTQUEUE'
       ;
     put "NOTE- " macroname;
   end;
@@ -64,7 +65,8 @@ proc sql;
       'CRDHARRAY',
       'CRDHSTACK',
       'CRDHQUEUE',
-      'CRDHORDSTACK'
+      'CRDHORDSTACK',
+      'CRDHPRTQUEUE'
       )
     and objtype = 'MACRO'
     and libname  = 'WORK'

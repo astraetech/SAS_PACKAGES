@@ -35,7 +35,8 @@ data _null_;
       'CRDHARRAY',
       'CRDHSTACK',
       'CRDHQUEUE',
-      'CRDHORDSTACK'
+      'CRDHORDSTACK',
+      'CRDHPRTQUEUE'
       ;
     put "NOTE- " macroname;
   end;
@@ -421,6 +422,11 @@ data _null_;
                 * othervise does not modify value
                 */
     );
+/*#############################################################*/                                                 
+/*                                                             */                                                 
+/* create Dynamic Hash Function Priority Queue - crDHOrdStack   */                                                 
+/*                                                             */                                                 
+/*#############################################################*/                                                 
 ;;;;
 run;
 

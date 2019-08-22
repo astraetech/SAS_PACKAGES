@@ -36,7 +36,8 @@ data _null_;
       'CRDHARRAY',
       'CRDHSTACK',
       'CRDHQUEUE',
-      'CRDHORDSTACK'
+      'CRDHORDSTACK',
+      'CRDHPRTQUEUE'
       ;
     put "NOTE- " macroname;
   end;
@@ -58,5 +59,7 @@ run;
 %include package(dynamicfifobyfunctionhash.sas) ;
 
 %include package(dynamicorderedstackbyfunctionhash.sas) ;
+
+%include package(dynamicpriorityqueuebyfunctionhash.sas) ;
 
 %put NOTE: loading package dynamicArray END;
