@@ -41,6 +41,30 @@ data _null_;
     put "NOTE- " macroname;
   end;
   put "NOTE- " / " "; 
+  put 'NOTE: The following functions are to be deleted:' /;
+  length macroname $ 32;
+  do functionname = 
+      'CALL DYNARRAYN()',
+      'CALL DYNARRAYC() /* $ 256 */',
+      
+      'CALL STACKN()',
+      'CALL STACKC() /* $ 256 */',
+     
+      'CALL FIFON()',
+      'CALL FIFOC() /* $ 256 */',
+
+      'CALL ASCSTACKN',
+      'CALL DESCSTACKN',
+      'CALL ASCSTACKC() /* $ 256 */',
+      'CALL DESCSTACKC() /* $ 256 */',
+
+      'CALL PRTPQUEUEN()',
+      'CALL PRTPQUEUEC() /* $ 256 */',
+      'CALL PRTNQUEUEN()',
+      'CALL PRTNQUEUEC() /* $ 256 */'
+      ;
+    put "NOTE- " functionname;
+  end;
   put "NOTE- " / " ";
 run;
 
@@ -87,4 +111,43 @@ run;
 proc delete data = _last_;
 run;
 
+
+
+/* delete functions */
+PROC FCMP OUTLIB = work.DynamicFunctionArray.package;
+  DELETEFUNC DYNARRAYN;
+  DELETEFUNC DYNARRAYC;
+
+  DELETEFUNC STACKN;
+  DELETEFUNC STACKC;
+
+  DELETEFUNC FIFON;
+  DELETEFUNC FIFOC;
+
+  DELETEFUNC ASCSTACKN;
+  DELETEFUNC DESCSTACKN;
+  DELETEFUNC ASCSTACKC;
+  DELETEFUNC DESCSTACKC;
+
+  DELETEFUNC PRTPQUEUEN;
+  DELETEFUNC PRTPQUEUEC;
+  DELETEFUNC PRTNQUEUEN;
+  DELETEFUNC PRTNQUEUEC; 
+run;
+
+/* delete the link to the functions' dataset */
+options cmplib = (
+%unquote(
+%sysfunc(tranwrd(
+ %sysfunc(getoption(cmplib))
+,%str(WORK.DYNAMICFUNCTIONARRAY)
+,%str()
+))
+));
+
+
+
 %put NOTE: unloading package dynamicArray END;
+
+
+

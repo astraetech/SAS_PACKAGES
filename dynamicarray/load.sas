@@ -41,6 +41,31 @@ data _null_;
       ;
     put "NOTE- " macroname;
   end;
+  put "NOTE- " / " ";
+  put 'NOTE: The following functions are to be compiled:' /;
+  length functionname $ 32;
+  do functionname = 
+      'CALL DYNARRAYN()',
+      'CALL DYNARRAYC() /* $ 256 */',
+      
+      'CALL STACKN()',
+      'CALL STACKC() /* $ 256 */',
+     
+      'CALL FIFON()',
+      'CALL FIFOC() /* $ 256 */',
+
+      'CALL ASCSTACKN',
+      'CALL DESCSTACKN',
+      'CALL ASCSTACKC() /* $ 256 */',
+      'CALL DESCSTACKC() /* $ 256 */',
+
+      'CALL PRTPQUEUEN()',
+      'CALL PRTPQUEUEC() /* $ 256 */',
+      'CALL PRTNQUEUEN()',
+      'CALL PRTNQUEUEC() /* $ 256 */'
+      ;
+    put "NOTE- " functionname;
+  end;
   put "NOTE- " / " "; 
   put 'NOTE- Write %helpPackage(dynamicarray) for help.' / " ";
   put "NOTE- " / " ";
@@ -61,5 +86,7 @@ run;
 %include package(dynamicorderedstackbyfunctionhash.sas) ;
 
 %include package(dynamicpriorityqueuebyfunctionhash.sas) ;
+
+%include package(functions.sas);
 
 %put NOTE: loading package dynamicArray END;
