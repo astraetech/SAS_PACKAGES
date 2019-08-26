@@ -1,7 +1,12 @@
 
+options dlCreateDir;
+libname dsSQL "%sysfunc(pathname(work))/dsSQLtmp";
+
 /* makro zewnetrzne */
 %MACRO SQL() / PARMBUFF SECURE; 
   %let SYSPBUFF = %superq(SYSPBUFF); /* maskujemy znaki specjalne */
+  %let SYSPBUFF = %substr(&SYSPBUFF,2,%LENGTH(&SYSPBUFF) - 2); /* kasujemy otwierający i zamykający nawias */
+  %let SYSPBUFF = %superq(SYSPBUFF); /* maskujemy jeszcze raz */
   %let SYSPBUFF = %sysfunc(quote(&SYSPBUFF)); /* dodajemy cudzyslowy */
   %put ***the querry***;
   %put &SYSPBUFF.;
@@ -70,7 +75,7 @@ run;
   %let query = %superq(query_arg); 
   %let query = %sysfunc(dequote(&query));
 
-  %let viewname = work.dsSQLtmpview&UNIQUE_INDEX_2;
+  %let viewname = dsSQL.dsSQLtmpview&UNIQUE_INDEX_2;
   proc sql;
     create view &viewname as &query;
   quit;
