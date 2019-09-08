@@ -73,7 +73,7 @@ data &filesWithCodes.;
     if fileId then 
       do j = 1 to dnum(fileId); drop j;
         file = dread(fileId, j);
-        fileshort = scan(file, 1, ".");
+        fileshort = substr(file, 1, length(file) - 4); /* filename.sas -> filename */
         output;
       end;
     rc = dclose(fileId);
@@ -139,8 +139,20 @@ data _null_;
 
   do until(eof);
     set &filesWithCodes. end = EOF nobs=NOBS;
-    put '%put NOTE- Element of type ' type 'from the file "' file '" will be included;' /;
-    put '%include package(_' folder +(-1) "." file ') / nosource2;' /;
+    put '%put NOTE- Element of type ' type +(-1) 'from the file "' file +(-1) '" will be included;' /;
+    if upcase(type)=:'EXEC' then
+    do;
+      put '%put NOTE- Executing the following code: ;';
+      put '%put NOTE- *****************************;';
+      put 'data _null_;';
+      put '  infile package(_' folder +(-1) "." file +(-1) ') lrecl=32767;';
+      put '  input;';
+      put '  putlog "*> " _infile_;';
+      put 'run;' /;
+      put '%put NOTE- *****************************;';
+    end;
+
+    put '%include package(_' folder +(-1) "." file +(-1) ') / nosource2;' /;
     isFunction + (upcase(type)=:'FUNCTION');
     isFormat   + (upcase(type)=:'FORMAT');
   end;
@@ -189,7 +201,7 @@ data _null_;
   do until(EOF);
     set &filesWithCodes. end = EOF nobs = NOBS;
     if not (upcase(type)=:'MACRO') then continue;
-    put '%put NOTE- Element of type ' type 'generated from the file "' file '" will be deleted;' /;
+    put '%put NOTE- Element of type ' type +(-1) 'generated from the file "' file +(-1) '" will be deleted;' /;
     put ',"' fileshort upcase32. '"';
   end;
   /**/
@@ -206,7 +218,7 @@ data _null_;
   do until(EOF);
     set &filesWithCodes. end = EOF;
     if not (upcase(type)=:'FORMAT') then continue;
-    put '%put NOTE- Element of type ' type 'generated from the file "' file '" will be deleted;' ;
+    put '%put NOTE- Element of type ' type +(-1) 'generated from the file "' file +(-1) '" will be deleted;' ;
     put ',"' fileshort upcase32. '"';
     isFormat + 1;
   end;
@@ -253,7 +265,7 @@ data _null_;
   do until(EOF);
     set &filesWithCodes. end = EOF;
     if not (upcase(type)=:'FUNCTION') then continue;
-    put '%put NOTE- Element of type ' type 'generated from the file "' file '" will be deleted;' ;
+    put '%put NOTE- Element of type ' type 'generated from the file "' file +(-1) '" will be deleted;' ;
     put 'deletefunc ' fileshort ';';
     isFunction + 1;
   end;
@@ -296,6 +308,7 @@ data _null_;
   put '%let notes_tmp  = %sysfunc(getoption(notes));                  ';
   put '%let source_tmp = %sysfunc(getoption(source));                 ';
   put 'options ls = MAX ps = MAX nonotes nosource;                    ';
+  put '%include package(packagemetadata.sas) / nosource2;             ' /;
   put 'data _%sysfunc(datetime(), hex16.)_;                           ';
   put 'infile cards4 dlm = "/";                                       ';
   put 'input @;                                                       ';
@@ -348,6 +361,11 @@ data _null_;
   put '    call execute("  put ""*> "" / ""*> "";                                                                       ");';
   put '    call execute("  stop;                                                                                        ");';
   put '    call execute("run;                                                                                           ");';
+  put '    if lowcase(type) =: "data" then                                                                                 ';
+  put '      do;                                                                                                           ';
+  put '        call execute("title ""Dataset " || strip(fileshort) || " from package &packageName. "";                  ");';
+  put '        call execute("proc contents data = " || strip(fileshort) || "; run; title;                               ");';
+  put '      end;                                                                                                          ';
   /**/
   put "  end; ";
   put "  stop; ";
