@@ -1,4 +1,4 @@
-﻿/*** HELP START ***/
+/*** HELP START ***/
 
 /* >>> dsSQL library: <<<
  *
@@ -37,3 +37,5 @@ proc delete data = _last_;
 run;
 
 libname dsSQL LIST;
+;
+

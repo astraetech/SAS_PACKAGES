@@ -1,16 +1,66 @@
 /*** HELP START ***/
 %macro GeneratePackge(
- packageName          /* name of the package, required */  
-,packageVersion       /* version of the package, required */
-,packageAuthor        /* required */
-,packageAuthorContact /* required */
-,filesLocation=%sysfunc(pathname(work))/%lowcase(&packageName.) /* place for packages'files*/
+ filesLocation=%sysfunc(pathname(work))/%lowcase(&packageName.) /* place for packages'files*/
 )/secure;
 /*** HELP END ***/
-%local zipReferrence filesWithCodes _RC_;
+%local zipReferrence filesWithCodes _DESCR_ _RC_;
 %let   zipReferrence = _%sysfunc(datetime(), hex6.)_;
 %let   filesWithCodes = WORK._%sysfunc(datetime(), hex16.)_;
+%let   _DESCR_ = _%sysfunc(datetime(), hex6.)c;
 
+/* collect package metadata from the description .sas file */
+filename &_DESCR_. "&filesLocation./description.sas" lrecl = 256;
+
+%if %sysfunc(fexist(&_DESCR_.)) %then 
+  %do;
+    %put NOTE: Creating package%str(%')s metadata; 
+
+    %local packageName          /* name of the package, required */  
+           packageVersion       /* version of the package, required */
+           packageAuthor        /* required */
+           packageAuthorContact /* required */
+           ;
+    data _null_;
+      infile &_DESCR_.;
+      input;
+    
+      select;
+        when(upcase(scan(_INFILE_, 1, ":")) = "PACKAGENAME")          call symputX("packageName", scan(_INFILE_, 2, ":"),"L");
+        when(upcase(scan(_INFILE_, 1, ":")) = "PACKAGEVERSION")       call symputX("packageVersion", scan(_INFILE_, 2, ":"),"L");
+        when(upcase(scan(_INFILE_, 1, ":")) = "PACKAGEAUTHOR")        call symputX("packageAuthor", scan(_INFILE_, 2, ":"),"L");
+        when(upcase(scan(_INFILE_, 1, ":")) = "PACKAGEAUTHORCONTACT") call symputX("packageAuthorContact", scan(_INFILE_, 2, ":"),"L");
+        
+        /* stop at the begining of description */
+        when(upcase(scan(_INFILE_, 1, ":")) = "DESCRIPTION START") stop;
+        otherwise;
+      end;
+    run;
+ 
+    /* test for required descriptors */
+    %if (%nrbquote(&packageName.) = )
+     or (%nrbquote(&packageVersion.) = )
+     or (%nrbquote(&packageAuthor.) = )
+     or (%nrbquote(&packageAuthorContact.) = )
+      %then
+        %do;
+          %put ERROR: At least one of descriptors is missing!;
+          %put ERROR- They are required to create package.;
+          %put ERROR- &=packageName.;
+          %put ERROR- &=packageVersion.;
+          %put ERROR- &=packageAuthor.;
+          %put ERROR- &=packageAuthorContact.;
+          %put ERROR- ;
+          %abort;
+        %end;
+  %end;
+%else
+  %do;
+    %put ERROR: The description.sas file is missing!;
+    %put ERROR- The file is required to create package%str(%')s metadata;
+    %abort;
+  %end;
+
+/* create or replace the ZIP file for package  */
 filename &zipReferrence. ZIP "&filesLocation./%lowcase(&packageName.).zip";
 
 %if %sysfunc(fexist(&zipReferrence.)) %then 
@@ -87,11 +137,23 @@ run;
 proc sort data = &filesWithCodes.;
   by order type file;
 run;
+/*
+proc contents data = &filesWithCodes.;
+run;
+*/
 title "List of files for &packageName., version &packageVersion.";
 title2 "%qsysfunc(datetime(), datetime21.)";
 proc print data = &filesWithCodes.;
 run;
 title;
+
+/* packages's description */
+data _null_;
+  infile &_DESCR_.;
+  file &zipReferrence.(description.sas);
+  input; 
+  put _INFILE_;
+run;
 
 /* package's metadata */
 data _null_;
@@ -114,6 +176,7 @@ data _null_;
   put ' %let packageVersion       =' "&packageVersion.;";
   put ' %let packageAuthor        =' "&packageAuthor.;";
   put ' %let packageAuthorContact =' "&packageAuthorContact.;";
+
   put ' ; ';
 
   stop;
@@ -126,11 +189,14 @@ data _null_;
   file &zipReferrence.(load.sas);
  
   put 'filename package list;' /;
+  put ' %put NOTE- ;'; 
   put ' %put NOTE: ' @; put "Loading package &packageName., version &packageVersion.; ";
-  put ' %put NOTE: ' @; put "Generated: %sysfunc(datetime(), datetime18.); ";
+  put ' %put NOTE- ' @; put "Generated: %sysfunc(datetime(), datetime18.); ";
   put ' %put NOTE- ' @; put "Author(s): &packageAuthor.; ";
   put ' %put NOTE- ' @; put "Contact(s) at: &packageAuthorContact.; ";
-
+  put ' %put NOTE- ;';
+  put ' %put NOTE- Write %nrstr(%%)helpPackage(' "&packageName." ') for the description;';
+  put ' %put NOTE- ;';
   put ' %put NOTE- *** START ***; ' /;
 
   put '%include package(packagemetadata.sas) / nosource2;' /;
@@ -139,9 +205,12 @@ data _null_;
 
   do until(eof);
     set &filesWithCodes. end = EOF nobs=NOBS;
-    put '%put NOTE- Element of type ' type +(-1) 'from the file "' file +(-1) '" will be included;' /;
+    put '%put NOTE- ;';
+    put '%put NOTE- Element of type ' type 'from the file "' file +(-1) '" will be included;' /;
+
     if upcase(type)=:'EXEC' then
     do;
+      put '%put NOTE- ;';
       put '%put NOTE- Executing the following code: ;';
       put '%put NOTE- *****************************;';
       put 'data _null_;';
@@ -150,28 +219,33 @@ data _null_;
       put '  putlog "*> " _infile_;';
       put 'run;' /;
       put '%put NOTE- *****************************;';
+      put '%put NOTE- ;';
     end;
 
     put '%include package(_' folder +(-1) "." file +(-1) ') / nosource2;' /;
+
     isFunction + (upcase(type)=:'FUNCTION');
-    isFormat   + (upcase(type)=:'FORMAT');
-  end;
+    isFormat   + (upcase(type)=:'FORMAT'); 
   
-  /* add the link to the functions' dataset */
-  if isFunction then
-    do;
-      put "options APPEND=(cmplib = work.%lowcase(&packageName.));";
-      put '%put NOTE:[CMPLIB] %sysfunc(getoption(cmplib));' /;
-    end;
+    /* add the link to the functions' dataset, only for the first occurence */
+    if 1 = isFunction and (upcase(type)=:'FUNCTION') then
+      do;
+        put "options APPEND=(cmplib = work.%lowcase(&packageName.));";
+        put '%put NOTE- ;';
+        put '%put NOTE:[CMPLIB] %sysfunc(getoption(cmplib));' /;
+      end;
 
-  /* add the link to the formats' catalog */
-  if isFormat then
-    do;
-      put "options INSERT=( fmtsearch = work.%lowcase(&packageName.) );";
-      put '%put NOTE:[FMTSEARCH] %sysfunc(getoption(fmtsearch));' /;
-    end;
+    /* add the link to the formats' catalog, only for the first occurence  */
+    if 1 = isFormat and (upcase(type)=:'FORMAT') then
+      do;
+        put "options INSERT=( fmtsearch = work.%lowcase(&packageName.) );";
+        put '%put NOTE- ;';
+        put '%put NOTE:[FMTSEARCH] %sysfunc(getoption(fmtsearch));'/;
+      end;
+  end;
 
-  put / '%put NOTE: '"Loading package &packageName., version &packageVersion.;";
+  put '%put NOTE- ;';
+  put '%put NOTE: '"Loading package &packageName., version &packageVersion.;";
   put '%put NOTE- *** END ***;' /;
   put "/* load.sas end */" /;
   stop;
@@ -201,7 +275,8 @@ data _null_;
   do until(EOF);
     set &filesWithCodes. end = EOF nobs = NOBS;
     if not (upcase(type)=:'MACRO') then continue;
-    put '%put NOTE- Element of type ' type +(-1) 'generated from the file "' file +(-1) '" will be deleted;' /;
+    put '%put NOTE- Element of type ' type 'generated from the file "' file +(-1) '" will be deleted;';
+    put '%put NOTE- ;' /;
     put ',"' fileshort upcase32. '"';
   end;
   /**/
@@ -218,7 +293,8 @@ data _null_;
   do until(EOF);
     set &filesWithCodes. end = EOF;
     if not (upcase(type)=:'FORMAT') then continue;
-    put '%put NOTE- Element of type ' type +(-1) 'generated from the file "' file +(-1) '" will be deleted;' ;
+    put '%put NOTE- Element of type ' type 'generated from the file "' file +(-1) '" will be deleted;';
+    put '%put NOTE- ;' /;
     put ',"' fileshort upcase32. '"';
     isFormat + 1;
   end;
@@ -265,7 +341,8 @@ data _null_;
   do until(EOF);
     set &filesWithCodes. end = EOF;
     if not (upcase(type)=:'FUNCTION') then continue;
-    put '%put NOTE- Element of type ' type 'generated from the file "' file +(-1) '" will be deleted;' ;
+    put '%put NOTE- Element of type ' type 'generated from the file "' file +(-1) '" will be deleted;';
+    put '%put NOTE- ;' /;
     put 'deletefunc ' fileshort ';';
     isFunction + 1;
   end;
@@ -284,7 +361,9 @@ data _null_;
     end;
     
   put '%put NOTE: '"Unloading package &packageName., version &packageVersion.;";
-  put '%put NOTE- *** END ***;' /; 
+  put '%put NOTE- *** END ***;';
+  put '%put NOTE- ;';
+ 
   put "/* unload.sas end */";
   stop;
 run;
@@ -299,16 +378,33 @@ data _null_;
 
   put 'filename package list;' /;
   put '%put NOTE: '"Help for package &packageName., version &packageVersion.;";
+  put '%put NOTE- ' @; put "Generated: %sysfunc(datetime(), datetime18.); ";
+  put '%put NOTE- ' @; put "Author(s): &packageAuthor.; ";
+  put '%put NOTE- ' @; put "Contact(s) at: &packageAuthorContact.; ";
+  put '%put NOTE- ;';
   put '%put NOTE- *** START ***;' /;
   
   /* Use helpKeyword macrovariable to search for content (filename and type) */
-  /*put '%local ls_tmp ps_tmp notes_tmp source_tmp;                     ';*/
-  put '%let ls_tmp     = %sysfunc(getoption(ls));                     ';
-  put '%let ps_tmp     = %sysfunc(getoption(ps));                     ';
-  put '%let notes_tmp  = %sysfunc(getoption(notes));                  ';
-  put '%let source_tmp = %sysfunc(getoption(source));                 ';
-  put 'options ls = MAX ps = MAX nonotes nosource;                    ';
-  put '%include package(packagemetadata.sas) / nosource2;             ' /;
+  /* put '%local ls_tmp ps_tmp notes_tmp source_tmp;                       ';*/
+  put '%let ls_tmp     = %sysfunc(getoption(ls));         ';
+  put '%let ps_tmp     = %sysfunc(getoption(ps));         ';
+  put '%let notes_tmp  = %sysfunc(getoption(notes));      ';
+  put '%let source_tmp = %sysfunc(getoption(source));     ';
+  put 'options ls = MAX ps = MAX nonotes nosource;        ';
+  put '%include package(packagemetadata.sas) / nosource2; ' /;
+
+  put 'data _null_;                                                              ';
+  put '  if strip(symget("helpKeyword")) = " " then                              ';
+  put '    do until (EOF);                                                       ';
+  put '      infile package(description.sas) end = EOF;                          ';
+  put '      input;                                                              ';
+  put '      if upcase(strip(_infile_)) = "DESCRIPTION END:" then printer = 0;   ';
+  put '      if printer then put "*> " _infile_;                                 ';
+  put '      if upcase(strip(_infile_)) = "DESCRIPTION START:" then printer = 1; ';
+  put '    end;                                                                  ';
+  put '  else stop;                                                              ';
+  put 'run;                                                                      ' /;
+
   put 'data _%sysfunc(datetime(), hex16.)_;                           ';
   put 'infile cards4 dlm = "/";                                       ';
   put 'input @;                                                       ';
