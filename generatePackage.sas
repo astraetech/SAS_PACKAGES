@@ -15,20 +15,23 @@ filename &_DESCR_. "&filesLocation./description.sas" lrecl = 256;
   %do;
     %put NOTE: Creating package%str(%')s metadata; 
 
-    %local packageName          /* name of the package, required */  
-           packageVersion       /* version of the package, required */
-           packageAuthor        /* required */
-           packageAuthorContact /* required */
+    %local packageName       /* name of the package, required */  
+           packageVersion    /* version of the package, required */
+           packageTitle      /* title of the package, required*/
+           packageAuthor     /* required */
+           packageMaintainer /* required */
            ;
     data _null_;
       infile &_DESCR_.;
       input;
     
       select;
-        when(upcase(scan(_INFILE_, 1, ":")) = "PACKAGENAME")          call symputX("packageName", scan(_INFILE_, 2, ":"),"L");
-        when(upcase(scan(_INFILE_, 1, ":")) = "PACKAGEVERSION")       call symputX("packageVersion", scan(_INFILE_, 2, ":"),"L");
-        when(upcase(scan(_INFILE_, 1, ":")) = "PACKAGEAUTHOR")        call symputX("packageAuthor", scan(_INFILE_, 2, ":"),"L");
-        when(upcase(scan(_INFILE_, 1, ":")) = "PACKAGEAUTHORCONTACT") call symputX("packageAuthorContact", scan(_INFILE_, 2, ":"),"L");
+        when(upcase(scan(_INFILE_, 1, ":")) = "PACKAGE")    call symputX("packageName", scan(_INFILE_, 2, ":"),"L");
+        when(upcase(scan(_INFILE_, 1, ":")) = "VERSION")    call symputX("packageVersion", scan(_INFILE_, 2, ":"),"L");
+        when(upcase(scan(_INFILE_, 1, ":")) = "AUTHOR")     call symputX("packageAuthor", scan(_INFILE_, 2, ":"),"L");
+        when(upcase(scan(_INFILE_, 1, ":")) = "MAINTAINER") call symputX("packageMaintainer", scan(_INFILE_, 2, ":"),"L");
+        when(upcase(scan(_INFILE_, 1, ":")) = "TITLE")      call symputX("packageTitle", scan(_INFILE_, 2, ":"),"L");
+        when(upcase(scan(_INFILE_, 1, ":")) = "ENCODING")   call symputX("packageEncoding", scan(_INFILE_, 2, ":"),"L");
         
         /* stop at the begining of description */
         when(upcase(scan(_INFILE_, 1, ":")) = "DESCRIPTION START") stop;
@@ -40,15 +43,19 @@ filename &_DESCR_. "&filesLocation./description.sas" lrecl = 256;
     %if (%nrbquote(&packageName.) = )
      or (%nrbquote(&packageVersion.) = )
      or (%nrbquote(&packageAuthor.) = )
-     or (%nrbquote(&packageAuthorContact.) = )
+     or (%nrbquote(&packageMaintainer.) = )
+     or (%nrbquote(&packageTitle.) = )
+     or (%nrbquote(&packageEncoding.) = )
       %then
         %do;
           %put ERROR: At least one of descriptors is missing!;
           %put ERROR- They are required to create package.;
           %put ERROR- &=packageName.;
+          %put ERROR- &=packageTitle.;
           %put ERROR- &=packageVersion.;
           %put ERROR- &=packageAuthor.;
-          %put ERROR- &=packageAuthorContact.;
+          %put ERROR- &=packageMaintainer.;
+          %put ERROR- &=packageEncoding.;          
           %put ERROR- ;
           %abort;
         %end;
@@ -166,16 +173,20 @@ data _null_;
   file &zipReferrence.(packagemetadata.sas);
 
   put ' data _null_; '; /* simple "%local" returns error while loading package */
-  put ' call symputX("packageName",          " ", "L");';
-  put ' call symputX("packageVersion",       " ", "L");';
-  put ' call symputX("packageAuthor",        " ", "L");';
-  put ' call symputX("packageAuthorContact", " ", "L");';
+  put ' call symputX("packageName",       " ", "L");';
+  put ' call symputX("packageVersion",    " ", "L");';
+  put ' call symputX("packageTitle",      " ", "L");';  
+  put ' call symputX("packageAuthor",     " ", "L");';
+  put ' call symputX("packageMaintainer", " ", "L");';
+  put ' call symputX("packageEncoding",   " ", "L");'; 
   put ' run; ';
 
-  put ' %let packageName          =' "&packageName.;";
-  put ' %let packageVersion       =' "&packageVersion.;";
-  put ' %let packageAuthor        =' "&packageAuthor.;";
-  put ' %let packageAuthorContact =' "&packageAuthorContact.;";
+  put ' %let packageName       =' "&packageName.;";
+  put ' %let packageVersion    =' "&packageVersion.;";
+  put ' %let packageTitle      =' "&packageTitle.;";
+  put ' %let packageAuthor     =' "&packageAuthor.;";
+  put ' %let packageMaintainer =' "&packageMaintainer.;";
+  put ' %let packageEncoding   =' "&packageEncoding.;";
 
   put ' ; ';
 
@@ -191,15 +202,16 @@ data _null_;
   put 'filename package list;' /;
   put ' %put NOTE- ;'; 
   put ' %put NOTE: ' @; put "Loading package &packageName., version &packageVersion.; ";
+  put ' %put NOTE: ' @; put "*** &packageTitle. ***; ";
   put ' %put NOTE- ' @; put "Generated: %sysfunc(datetime(), datetime18.); ";
   put ' %put NOTE- ' @; put "Author(s): &packageAuthor.; ";
-  put ' %put NOTE- ' @; put "Contact(s) at: &packageAuthorContact.; ";
+  put ' %put NOTE- ' @; put "Maintainer(s): &packageMaintainer.; ";
   put ' %put NOTE- ;';
   put ' %put NOTE- Write %nrstr(%%)helpPackage(' "&packageName." ') for the description;';
   put ' %put NOTE- ;';
   put ' %put NOTE- *** START ***; ' /;
 
-  put '%include package(packagemetadata.sas) / nosource2;' /;
+  put '%include package(packagemetadata.sas) / nosource2;' /; /* <- copied also to loadPackage macro */
   isFunction = 0;
   isFormat   = 0;
 
@@ -320,7 +332,7 @@ data _null_;
   put 'proc delete data = _last_;';
   put 'run;';
 
-  /* delete the link to the formats' catalog */
+  /* delete the link to the formats catalog */
   if isFormat then
     do;
       put "proc delete data = work.%lowcase(&packageName.)(mtype = catalog);";
@@ -348,7 +360,7 @@ data _null_;
   end;
   put "run;" /;
 
-  /* delete the link to the functions' dataset */
+  /* delete the link to the functions dataset */
   if isFunction then
     do;
       put 'options cmplib = (%unquote(%sysfunc(tranwrd(
@@ -359,7 +371,30 @@ data _null_;
       ,%str(()) ))));';
       put '%put; %put NOTE:[CMPLIB] %sysfunc(getoption(cmplib));' /;
     end;
-    
+   
+  /* delete datasets */
+  put "proc sql noprint;";
+  EOF = 0;
+  do until(EOF);
+    set &filesWithCodes. end = EOF;
+    if not (upcase(type)=:'DATA') then continue;
+    put '%put NOTE- Element of type ' type 'generated from the file "' file +(-1) '" will be deleted;';
+    put '%put NOTE- ;' /;
+    put 'drop table ' fileshort ';';
+  end;
+  put "quit;" /;
+
+  /* delete libraries */
+  EOF = 0;
+  do until(EOF);
+    set &filesWithCodes. end = EOF;
+    if not (upcase(type)=:'LIBNAME') then continue;
+    put '%put NOTE- Element of type ' type 'generated from the file "' file +(-1) '" will be cleared;';
+    put '%put NOTE- ;' /;
+    put 'libname ' fileshort ' clear;';
+  end;
+  put "run;" /;
+ 
   put '%put NOTE: '"Unloading package &packageName., version &packageVersion.;";
   put '%put NOTE- *** END ***;';
   put '%put NOTE- ;';
@@ -377,12 +412,14 @@ data _null_;
   length strX $ 32767;
 
   put 'filename package list;' /;
-  put '%put NOTE: '"Help for package &packageName., version &packageVersion.;";
-  put '%put NOTE- ' @; put "Generated: %sysfunc(datetime(), datetime18.); ";
-  put '%put NOTE- ' @; put "Author(s): &packageAuthor.; ";
-  put '%put NOTE- ' @; put "Contact(s) at: &packageAuthorContact.; ";
-  put '%put NOTE- ;';
-  put '%put NOTE- *** START ***;' /;
+  put ' %put NOTE- ;';
+  put ' %put NOTE: '"Help for package &packageName., version &packageVersion.;";
+  put ' %put NOTE: ' @; put "*** &packageTitle. ***; ";
+  put ' %put NOTE- ' @; put "Generated: %sysfunc(datetime(), datetime18.); ";
+  put ' %put NOTE- ' @; put "Author(s): &packageAuthor.; ";
+  put ' %put NOTE- ' @; put "Maintainer(s): &packageMaintainer.; ";
+  put ' %put NOTE- ;';
+  put ' %put NOTE- *** START ***;' /;
   
   /* Use helpKeyword macrovariable to search for content (filename and type) */
   /* put '%local ls_tmp ps_tmp notes_tmp source_tmp;                       ';*/
@@ -424,7 +461,14 @@ data _null_;
   do until(EOFDS);
     /* content is created during package creation */
     set &filesWithCodes. end = EOFDS nobs = NOBS;
-    strX = catx('/', folder, order, type, file, fileshort);
+    select;
+      when (upcase(type) = "DATA")     fileshort2 = fileshort;
+      when (upcase(type) = "MACRO")    fileshort2 = cats('%',fileshort,'()');
+      when (upcase(type) = "FUNCTION") fileshort2 = cats(fileshort,'()');
+      when (upcase(type) = "FORMAT")   fileshort2 = cats('$',fileshort);
+      otherwise fileshort2 = fileshort;
+    end;
+    strX = catx('/', folder, order, type, file, fileshort, fileshort2);
     put strX;
   end;
 

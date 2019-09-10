@@ -2,10 +2,14 @@
 /* The collon (:) is a field separator and is restricted    */
 /* in lines other than lines of the description part.       */
 
-packageName: SQLinDS                   :/*required, not null*/
-packageVersion: 1.0                    :/*required, not null*/
-packageAuthor: Bartosz Jablonski       :/*required, not null*/
-packageAuthorContact: yabwon@gmail.com :/*required, not null*/
+Type: Package
+Package: SQLinDS                                 :/*required, not null*/
+Title: SQL queries in Data Step                  :/*required, not null*/
+Version: 1.0                                     :/*required, not null*/
+Author: Bartosz Jablonski (yabwon@gmail.com)     :/*required, not null*/
+Maintainer: Bartosz Jablonski (yabwon@gmail.com) :/*required, not null*/
+License: GPL2
+Encoding: UTF8                                   :/*required, not null*/
 
 /* All the text below will be used in help */
 DESCRIPTION START:
