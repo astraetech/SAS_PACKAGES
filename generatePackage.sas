@@ -1,4 +1,30 @@
 /*** HELP START ***/
+
+/**###################################################################**/
+/*                                                                     */
+/*  Copyright Bartosz Jablonski, September 2019.                       */
+/*                                                                     */
+/*  Code is free and open source. If you want - you can use it.        */
+/*  I tested it the best I could                                       */
+/*  but it comes with absolutely no warranty whatsoever.               */
+/*  If you cause any damage or something - it will be your own fault.  */
+/*  You've been warned! You are using it on your own risk.             */
+/*  However, if you decide to use it don't forget to mention author.   */
+/*  Bartosz Jablonski (yabwon@gmail.com)                               */
+/*                                                                     */
+/**###################################################################**/
+
+/* Macros to generte SAS packages */
+/* A SAS package is a zip file containing a group 
+   of SAS codes (macros, functions, datasteps generating 
+   data, etc.) wrapped up together and %INCLUDEed by
+   a single load.sas file (also embeaded inside the zip).
+*/
+
+/*** HELP END ***/
+
+
+/*** HELP START ***/
 %macro GeneratePackge(
  filesLocation=%sysfunc(pathname(work))/%lowcase(&packageName.) /* place for packages'files*/
 )/secure;
@@ -79,9 +105,29 @@ filename &zipReferrence. ZIP "&filesLocation./%lowcase(&packageName.).zip";
 /*** HELP START ***/
 /* locate files with codes in base folder (i.e. at filesLocation directory) */
 /*
-the "tree structure" of the folder 
-could be for example:
-base
+remember to prepare description.sas file with
+the following obligatory data, for example:
+--------------------------------------------------------------------------------------------
+Type: Package
+Package: ShortPackageName                                
+Title: A title/brief info for log note for your packages                 
+Version: X.Y                                    
+Author: Firstname1 Lastname1 (xxxxxx1@yyyyy.com), Firstname2 Lastname2 (xxxxxx2@yyyyy.com)     
+Maintainer: Firstname Lastname (xxxxxx@yyyyy.com)
+License: GPL2
+Encoding: UTF8                                  
+
+DESCRIPTION START:
+  Xxxxxxxxxxx xxxxxxx xxxxxx xxxxxxxx xxxxxxxx. Xxxxxxx
+  xxxx xxxxxxxxxxxx xx xxxxxxxxxxx xxxxxx. Xxxxxxx xxx
+  xxxx xxxxxx. Xxxxxxxxxxxxx xxxxxxxxxx xxxxxxx.
+DESCRIPTION END:
+--------------------------------------------------------------------------------------------
+
+The "tree structure" of the folder could be for example:
+
+--------------------------------------------------------------------------------------------
+  ..
    |
    +-000_libname [one file one libname]
    |
@@ -93,7 +139,7 @@ base
    |
    +-004_data [one file one dataset]
    |
-   +-005_exec 
+   +-005_exec [content of the files will be printed to the log]
    |
    +-006_format [if codes are dependent you can order them in folders]
    |
@@ -104,6 +150,12 @@ base
    +-...
    |
    ...
+--------------------------------------------------------------------------------------------
+
+As you can see the 'type' of folder must be in low case,
+but, if order of loading is important, the 'sequential number'
+can be used to order multiple types 
+
 */
 /*** HELP END ***/
 
@@ -148,8 +200,9 @@ run;
 proc contents data = &filesWithCodes.;
 run;
 */
-title "List of files for &packageName., version &packageVersion.";
-title2 "%qsysfunc(datetime(), datetime21.)";
+title1 "List of files for &packageName., version &packageVersion.";
+title2 "Datetime: %qsysfunc(datetime(), datetime19.), SAS version: &sysvlong.";
+title3 "Package's encoding: '&packageEncoding.', session's encoding: '&sysencoding.'.";
 proc print data = &filesWithCodes.;
 run;
 title;
@@ -564,14 +617,22 @@ ods html;
 TODO:
 - modyfikacja helpa, sprawdzanie kodu danje funkcji/makra/typu [v]
 
-- opcjonalne sortowanie nazw folderow(<numer>_<typ>)
+- opcjonalne sortowanie nazw folderow(<numer>_<typ>) [v]
 
 - wewnętrzna nazwaz zmiennej z nazwa pakietu (na potrzeby kompilacji) [v]
 
 - weryfikacja srodaowiska
 
-- weryfikacja "niepustosci" obowiazkowych argumentow
+- weryfikacja "niepustosci" obowiazkowych argumentow   [v]
 
+*/
+
+/*
+
+%include "C:\SAS_PACKAGES\generatePackage.sas";
+
+ods html;
+%generatePackge(filesLocation=C:\SAS_PACKAGES\SQLinDS)
 */
 
 /*
