@@ -84,6 +84,7 @@
 
 %macro helpPackage(
   packageName                         /* name of a package, e.g. myPackageFile.zip, not null  */
+, helpKeyword                         /* phrase to search, * means print all help */
 , path = %sysfunc(pathname(packages)) /* location of a package, by default it looks for location of "packages" library */
 , options = %str(LOWCASE_MEMNAME)     /* possible options for ZIP filename */
 , source2 = /*source2*/               /* option to print out details, null by default */

@@ -364,7 +364,7 @@ data _null_;
     isFormat + 1;
   end;
   put '  )';
-  put '  and objtype in ("FORMAT" "INFORMAT")';
+  put '  and objtype in ("FORMAT" "FORMATC" "INFMT" "INFMTC")';
   put '  and libname  = "WORK"';
   put "  and memname = '%upcase(&packageName.)'";
   put '  )';
