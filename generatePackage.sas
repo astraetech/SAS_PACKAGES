@@ -200,10 +200,11 @@ run;
 proc contents data = &filesWithCodes.;
 run;
 */
-title1 "List of files for &packageName., version &packageVersion.";
-title2 "Datetime: %qsysfunc(datetime(), datetime19.), SAS version: &sysvlong.";
-title3 "Package's encoding: '&packageEncoding.', session's encoding: '&sysencoding.'.";
-proc print data = &filesWithCodes.;
+title1 "Package's location: &filesLocation.";
+title2 "List of files for &packageName., version &packageVersion.";
+title3 "Datetime: %qsysfunc(datetime(), datetime19.), SAS version: &sysvlong.";
+title4 "Package's encoding: '&packageEncoding.', session's encoding: '&sysencoding.'.";
+proc print data = &filesWithCodes.(drop=base);
 run;
 title;
 
@@ -628,6 +629,8 @@ TODO:
 - dodac typ "clear" do czyszczenia po plikach 'exec'
 
 - doadc sprawdzanie liczby wywołan procedury fcmp, format i slowa '%macro(' w plikach z kodami
+
+- syspackages - makrozmienna z lista zaladowanych pakietow
 */
 
 /*

@@ -20,6 +20,10 @@
    data, etc.) wrapped up together and %INCLUDEed by
    a single load.sas file (also embeaded inside the zip).
 */
+/*
+TODO:
+- makro do listowania dostepnych pakietow ze wskazanego folderu
+*/
 /*** HELP END ***/
 
 /*** HELP START ***/
@@ -129,7 +133,7 @@ libname packages "C:/SAS_PACKAGES/";
 
 OR
 
-filename packages "C:/SAS_WORK/PACKAGES";
+filename packages "C:/SAS_PACKAGES";
 %include packages(loadpackage.sas);
 
 %loadpackage(macroarray)
