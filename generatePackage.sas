@@ -625,6 +625,9 @@ TODO:
 
 - weryfikacja "niepustosci" obowiazkowych argumentow   [v]
 
+- dodac typ "clear" do czyszczenia po plikach 'exec'
+
+- doadc sprawdzanie liczby wywołan procedury fcmp, format i slowa '%macro(' w plikach z kodami
 */
 
 /*
