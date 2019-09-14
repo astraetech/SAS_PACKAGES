@@ -37,14 +37,14 @@ TODO:
 /*** HELP END ***/
   filename package ZIP 
   /* put location of package myPackageFile.zip here */
-    "&path./&packageName..zip" %unquote(&options.)
+    "&path./%lowcase(&packageName.).zip" %unquote(&options.)
   ;
   %if %sysfunc(fexist(package)) %then
     %do;
       %include package(packagemetadata.sas) / &source2.;
       filename package clear;
       filename package ZIP 
-        "&path./&packageName..zip" %unquote(&options.)  
+        "&path./%lowcase(&packageName.).zip" %unquote(&options.)  
         ENCODING =
           %if %bquote(&packageEncoding.) NE %then &packageEncoding. ;
                                             %else utf8 ;
@@ -66,14 +66,14 @@ TODO:
 /*** HELP END ***/
   filename package ZIP 
   /* put location of package myPackageFile.zip here */
-    "&path./&packageName..zip" %unquote(&options.)
+    "&path./%lowcase(&packageName.).zip" %unquote(&options.)
   ;
   %if %sysfunc(fexist(package)) %then
     %do;
       %include package(packagemetadata.sas) / &source2.;
       filename package clear;
       filename package ZIP 
-        "&path./&packageName..zip" %unquote(&options.)  
+        "&path./%lowcase(&packageName.).zip" %unquote(&options.)  
         ENCODING =
           %if %bquote(&packageEncoding.) NE %then &packageEncoding. ;
                                             %else utf8 ;
@@ -96,14 +96,14 @@ TODO:
 /*** HELP END ***/
   filename package ZIP 
   /* put location of package myPackageFile.zip here */
-    "&path./&packageName..zip" %unquote(&options.)
+    "&path./%lowcase(&packageName.).zip" %unquote(&options.)
   ;
   %if %sysfunc(fexist(package)) %then
     %do;
       %include package(packagemetadata.sas) / &source2.;
       filename package clear;
       filename package ZIP 
-        "&path./&packageName..zip" %unquote(&options.) 
+        "&path./%lowcase(&packageName.).zip" %unquote(&options.) 
         ENCODING =
           %if %bquote(&packageEncoding.) NE %then &packageEncoding. ;
                                             %else utf8 ;
