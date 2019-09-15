@@ -1,4 +1,4 @@
-﻿
+
 filename packages "C:\SAS_PACKAGES";
 
 %macro listPackages();
@@ -16,7 +16,8 @@ data _null_;
   rc=filename(folderRef, base);
   folderid=dopen(folderRef);
 
-  put 100*"+" ;
+  put;
+  put "/*" 100*"+" ;
   do i=1 to dnum(folderId); drop i;
     folder = dread(folderId, i);
 
@@ -30,38 +31,42 @@ data _null_;
           file = catx('/',base, folder);
           length nn $ 96;
           nn = repeat("*", (96-lengthn(file)));   
-          put "* " file @; put nn /;
+          
+          putlog " ";
+          put " * " file @; put nn /;
            
           infile package ZIP FILEVAR=file member="description.sas" end=EOF; 
-          
-          
-          do until(EOF);
-              input;
-              if lowcase(scan(_INFILE_,1,":")) in ("package" "title" "version" "author" "maintainer") then
-              putlog "  " _INFILE_;
-              if strip(_INFILE_) = "DESCRIPTION START:" then leave;
-          end; 
-          
-          
-          output;
-          put;
+           
+            do until(EOF);
+                input;
+                if lowcase(scan(_INFILE_,1,":")) in ("package" "title" "version" "author" "maintainer") then
+                  do;
+                    _INFILE_ = scan(_INFILE_,1,":") !! ":" !! scan(_INFILE_,2,":");
+                    putlog " *  " _INFILE_;
+                  end;
+                if strip(_INFILE_) = "DESCRIPTION START:" then leave;
+            end; 
       end;
     
     rc = dclose(fileId);
     rc = filename(fileRef);
   end;
 
-  put 100*"+";
+  putlog " ";
+  put 100*"+" "*/";
   rc = dclose(folderid);
   rc = filename(folderRef);
   stop;
 run;
-options nonotes nosource;
+options notes source;
 
 %mend listPackages;
 
 %listPackages()
 
+
+data _null_;
+run;
 
 /*
 Package: 

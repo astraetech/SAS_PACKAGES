@@ -26,7 +26,7 @@
 
 /*** HELP START ***/
 %macro GeneratePackge(
- filesLocation=%sysfunc(pathname(work))/%lowcase(&packageName.) /* place for packages'files*/
+ filesLocation=%sysfunc(pathname(work))/%lowcase(&packageName.) /* place for packages' files */
 )/secure;
 /*** HELP END ***/
 %local zipReferrence filesWithCodes _DESCR_ _RC_;
@@ -52,12 +52,12 @@ filename &_DESCR_. "&filesLocation./description.sas" lrecl = 256;
       input;
     
       select;
-        when(upcase(scan(_INFILE_, 1, ":")) = "PACKAGE")    call symputX("packageName", scan(_INFILE_, 2, ":"),"L");
-        when(upcase(scan(_INFILE_, 1, ":")) = "VERSION")    call symputX("packageVersion", scan(_INFILE_, 2, ":"),"L");
-        when(upcase(scan(_INFILE_, 1, ":")) = "AUTHOR")     call symputX("packageAuthor", scan(_INFILE_, 2, ":"),"L");
+        when(upcase(scan(_INFILE_, 1, ":")) = "PACKAGE")    call symputX("packageName",       scan(_INFILE_, 2, ":"),"L");
+        when(upcase(scan(_INFILE_, 1, ":")) = "VERSION")    call symputX("packageVersion",    scan(_INFILE_, 2, ":"),"L");
+        when(upcase(scan(_INFILE_, 1, ":")) = "AUTHOR")     call symputX("packageAuthor",     scan(_INFILE_, 2, ":"),"L");
         when(upcase(scan(_INFILE_, 1, ":")) = "MAINTAINER") call symputX("packageMaintainer", scan(_INFILE_, 2, ":"),"L");
-        when(upcase(scan(_INFILE_, 1, ":")) = "TITLE")      call symputX("packageTitle", scan(_INFILE_, 2, ":"),"L");
-        when(upcase(scan(_INFILE_, 1, ":")) = "ENCODING")   call symputX("packageEncoding", scan(_INFILE_, 2, ":"),"L");
+        when(upcase(scan(_INFILE_, 1, ":")) = "TITLE")      call symputX("packageTitle",      scan(_INFILE_, 2, ":"),"L");
+        when(upcase(scan(_INFILE_, 1, ":")) = "ENCODING")   call symputX("packageEncoding",   scan(_INFILE_, 2, ":"),"L");
         
         /* stop at the begining of description */
         when(upcase(scan(_INFILE_, 1, ":")) = "DESCRIPTION START") stop;
@@ -103,14 +103,16 @@ filename &zipReferrence. ZIP "&filesLocation./%lowcase(&packageName.).zip";
   %end;
 
 /*** HELP START ***/
-/* locate files with codes in base folder (i.e. at filesLocation directory) */
+/* 
+  Locate all files with code in base folder (i.e. at filesLocation directory) 
+*/
 /*
-remember to prepare description.sas file with
-the following obligatory data, for example:
+  Remember to prepare description.sas file with
+  the following obligatory information:
 --------------------------------------------------------------------------------------------
 Type: Package
 Package: ShortPackageName                                
-Title: A title/brief info for log note for your packages                 
+Title: A title/brief info for log note about your packages                 
 Version: X.Y                                    
 Author: Firstname1 Lastname1 (xxxxxx1@yyyyy.com), Firstname2 Lastname2 (xxxxxx2@yyyyy.com)     
 Maintainer: Firstname Lastname (xxxxxx@yyyyy.com)
@@ -124,7 +126,12 @@ DESCRIPTION START:
 DESCRIPTION END:
 --------------------------------------------------------------------------------------------
 
-The "tree structure" of the folder could be for example:
+  Name of the 'type' of folder and files.sas inside must be in low case letters.
+
+  If order of loading is important, the 'sequential number'
+  can be used to order multiple types in the wey you wish.
+
+  The "tree structure" of the folder could be for example as follows:
 
 --------------------------------------------------------------------------------------------
   ..
@@ -139,9 +146,10 @@ The "tree structure" of the folder could be for example:
    |
    +-004_data [one file one dataset]
    |
-   +-005_exec [content of the files will be printed to the log]
+   +-005_exec [content of the files will be printed to the log before execution]
    |
-   +-006_format [if codes are dependent you can order them in folders]
+   +-006_format [if codes are dependent you can order them in folders, 
+   |             e.g. 003 will be executed before 006]
    |
    +-007_function
    |
@@ -149,12 +157,12 @@ The "tree structure" of the folder could be for example:
    |
    +-...
    |
+   +-00n_clean [if you need to clean something up after exec file execution]
+   |
+   +-...
+   |
    ...
 --------------------------------------------------------------------------------------------
-
-As you can see the 'type' of folder must be in low case,
-but, if order of loading is important, the 'sequential number'
-can be used to order multiple types 
 
 */
 /*** HELP END ***/
@@ -162,7 +170,8 @@ can be used to order multiple types
 /* collect the data */
 data &filesWithCodes.;
   base = "&filesLocation.";
-  length folder file $ 256 folderRef fileRef $ 8;
+  length folder file lowcase_name $ 256 folderRef fileRef $ 8; 
+  drop lowcase_name;
 
   folderRef = "_%sysfunc(datetime(), hex6.)0";
 
@@ -170,7 +179,16 @@ data &filesWithCodes.;
   folderid=dopen(folderRef);
 
   do i=1 to dnum(folderId); drop i;
-    folder = dread(folderId, i);
+    folder = dread(folderId, i); 
+    if folder NE lowcase(folder) then
+      do;
+        put 'ERROR: Folder should be named ONLY with low case letters.';
+        put 'ERROR- Current value is: ' folder;
+        lowcase_name = lowcase(folder);
+        put 'ERROR- Try: ' lowcase_name;
+        put;
+        abort;
+      end;
     order = scan(folder, 1, "_");
     type  = scan(folder,-1, "_");
 
@@ -182,6 +200,15 @@ data &filesWithCodes.;
     if fileId then 
       do j = 1 to dnum(fileId); drop j;
         file = dread(fileId, j);
+            if file NE lowcase(file) then
+              do;
+                put 'ERROR: File with code should be named ONLY with low case letters.';
+                put 'ERROR- Current value is: ' file;
+                lowcase_name = lowcase(file);
+                put 'ERROR- Try: ' lowcase_name;
+                put;
+                abort;
+              end;
         fileshort = substr(file, 1, length(file) - 4); /* filename.sas -> filename */
         output;
       end;
@@ -271,6 +298,7 @@ data _null_;
 
   do until(eof);
     set &filesWithCodes. end = EOF nobs=NOBS;
+    if (upcase(type)=:'CLEAN') then continue; /* cleaning files are only included in unload.sas */
     put '%put NOTE- ;';
     put '%put NOTE- Element of type ' type 'from the file "' file +(-1) '" will be included;' /;
 
@@ -327,6 +355,26 @@ data _null_;
   put 'filename package list;' /;
   put '%put NOTE: '"Unloading package &packageName., version &packageVersion.;";
   put '%put NOTE- *** START ***;' /;
+
+  /* include "cleaning" files */
+  EOF = 0;
+  do until(EOF);
+    set &filesWithCodes. end = EOF nobs = NOBS;
+    if not (upcase(type)=:'CLEAN') then continue;
+    put '%put NOTE- Code of type ' type 'generated from the file "' file +(-1) '" will be executed;';
+    put '%put NOTE- ;' /;
+    put '%put NOTE- Executing the following code: ;';
+    put '%put NOTE- *****************************;';
+    put 'data _null_;';
+    put '  infile package(_' folder +(-1) "." file +(-1) ') lrecl=32767;';
+    put '  input;';
+    put '  putlog "*> " _infile_;';
+    put 'run;' /;
+    put '%put NOTE- *****************************;';
+    put '%put NOTE- ;' /;
+
+    put '%include package(_' folder +(-1) "." file +(-1) ') / nosource2;' /;
+  end;
 
   /* delete macros and formats */
   put 'proc sql;';

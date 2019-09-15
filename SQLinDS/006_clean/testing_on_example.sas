@@ -1,8 +1,8 @@
 /*** HELP START ***/
 
-/* >>> testing_on_example exec: <<<
+/* >>> testing_on_example clean: <<<
  *
- * Test of %SQL() macro executed 
+ * Cleaning after test of %SQL() macro executed 
  * on dssql.sqlinds_example data set 
  *  
  * Recomnended for SAS 9.3 and higher. 
@@ -16,12 +16,9 @@
 /*** HELP END ***/
 
 
-data WORK.SQLinDStestquery;
-set %SQL(select id, avg(z) as avg_z
-         from dssql.sqlinds_example
-         where x > y
-         group by id
-         order id desc
-         );
-put _all_;
+data _null_; 
+  if exist('WORK.SQLinDStestquery','data') then 
+    do;
+      call execute('proc delete data = WORK.SQLinDStestquery; run;');
+    end;
 run;
