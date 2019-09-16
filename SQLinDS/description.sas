@@ -4,13 +4,13 @@
 
 /* **HEADER** */
 Type: Package                                    :/*required, not null, constant value*/
-Package: SQLinDS                                 :/*required, not null*/
+Package: SQLinDS                                 :/*required, not null, nameing restrictions like for a dataset name! */
 Title: SQL queries in Data Step                  :/*required, not null*/
 Version: 1.0                                     :/*required, not null*/
 Author: Bartosz Jablonski (yabwon@gmail.com)     :/*required, not null*/
 Maintainer: Bartosz Jablonski (yabwon@gmail.com) :/*required, not null*/
 License: GPL2
-Encoding: UTF8                                   :/*required, not null*/
+Encoding: UTF8                                   :/*required, not null, values: UTF8, WLATIN1, LATIN2, etc. */
 
 /* **DESCRIPTION** */
 /* All the text below will be used in help */

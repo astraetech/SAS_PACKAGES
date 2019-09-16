@@ -85,6 +85,31 @@ filename &_DESCR_. "&filesLocation./description.sas" lrecl = 256;
           %put ERROR- ;
           %abort;
         %end;
+    /* test for package name */
+    %if %sysfunc(lengthn(&packageName.)) > 32 %then
+      %do;
+        %put ERROR: Package name is more than 32 characters long.;
+        %put ERROR- The name is used for functions%str(%') dataset name;
+        %put ERROR- and for formats%str(%') catalog name.;
+        %put ERROR- The length is %sysfunc(lengthn(&packageName.)). Try something shorter.;
+        %abort;
+      %end;
+    %else %if %sysfunc(lengthn(&packageName.)) < 3 %then
+            %do;
+              %put WARNING: Package name is less than 3 characters.;
+              %put WARNING- Maybe consider some _meaningful_ name?;
+            %end;
+    /* test characters in package name */
+    %if %qsysfunc(lengthn(%qsysfunc(compress(&packageName.,,KDF)))) NE %qsysfunc(lengthn(&packageName.)) %then
+      %do;
+        %put ERROR: Package name contains illegal symbols.;
+        %put ERROR- The name is used for functions%str(%') dataset name;
+        %put ERROR- and for formats%str(%') catalog name.;
+        %put ERROR- Only English letters, underscore(_), and digits are allowed.;
+        %put ERROR- Try something else. Maybe: %qsysfunc(compress(&packageName.,,KDF)) will do?;
+        %abort;
+      %end;
+
   %end;
 %else
   %do;
@@ -227,10 +252,11 @@ run;
 proc contents data = &filesWithCodes.;
 run;
 */
-title1 "Package's location: &filesLocation.";
-title2 "List of files for &packageName., version &packageVersion.";
-title3 "Datetime: %qsysfunc(datetime(), datetime19.), SAS version: &sysvlong.";
-title4 "Package's encoding: '&packageEncoding.', session's encoding: '&sysencoding.'.";
+title1 "Package's location is: &filesLocation.";
+title2 "User: &SYSUSERID., datetime: %qsysfunc(datetime(), datetime21.), SAS version: &SYSVLONG4.";
+title3 "Package's encoding: '&packageEncoding.', session's encoding: '&SYSENCODING.'.";
+title4 " ______________________________ ";
+title5 "List of files for package: &packageName. (version &packageVersion.)";
 proc print data = &filesWithCodes.(drop=base);
 run;
 title;
@@ -439,12 +465,12 @@ data _null_;
     do;
       put "proc delete data = work.%lowcase(&packageName.)(mtype = catalog);";
       put 'run;';
-      put 'options fmtsearch = (%unquote(%sysfunc(tranwrd(
-       %lowcase(%sysfunc(getoption(fmtsearch)))
-      ,%str(' "work.%lowcase(&packageName.)" '), %str() ))));';
-      put 'options fmtsearch = (%unquote(%sysfunc(compress(
-       %sysfunc(getoption(fmtsearch))
-      , %str(()) ))));';
+      put 'options fmtsearch = (%unquote(%sysfunc(tranwrd(' /
+          '%lowcase(%sysfunc(getoption(fmtsearch)))' /
+          ',%str(' "work.%lowcase(&packageName.)" '), %str() ))));';
+      put 'options fmtsearch = (%unquote(%sysfunc(compress(' /
+          '%sysfunc(getoption(fmtsearch))' /
+          ', %str(()) ))));';
       put '%put NOTE:[FMTSEARCH] %sysfunc(getoption(fmtsearch));' /;
     end;
 
@@ -465,12 +491,12 @@ data _null_;
   /* delete the link to the functions dataset */
   if isFunction then
     do;
-      put 'options cmplib = (%unquote(%sysfunc(tranwrd(
-       %lowcase(%sysfunc(getoption(cmplib)))
-      ,%str(' "work.%lowcase(&packageName.)" '), %str() ))));';
-      put 'options cmplib = (%unquote(%sysfunc(compress(
-       %sysfunc(getoption(cmplib))
-      ,%str(()) ))));';
+      put 'options cmplib = (%unquote(%sysfunc(tranwrd(' /
+          '%lowcase(%sysfunc(getoption(cmplib)))' /
+          ',%str(' "work.%lowcase(&packageName.)" '), %str() ))));';
+      put 'options cmplib = (%unquote(%sysfunc(compress(' /
+          '%sysfunc(getoption(cmplib))' /
+          ',%str(()) ))));';
       put '%put; %put NOTE:[CMPLIB] %sysfunc(getoption(cmplib));' /;
     end;
    
