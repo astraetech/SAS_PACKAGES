@@ -9,7 +9,8 @@
 /*** HELP END ***/
 
 proc fcmp 
-  outlib = work.&packageName..package
+  inlib  = work.&packageName.fcmp
+  outlib = work.&packageName.fcmp.package
 ;
 
 subroutine testsubroutine(a,b,c);

@@ -1,4 +1,4 @@
-﻿/*** HELP START ***/
+/*** HELP START ***/
 
 /* >>> dsSQL() function: <<<
  *
@@ -15,7 +15,8 @@
 /*** HELP END ***/
 
 proc fcmp 
-  outlib = work.&packageName..package
+  inlib  = work.&packageName.fcmp
+  outlib = work.&packageName.fcmp.package
 ;
   function dsSQL(unique_index_2, query $) $ 41;
     length 

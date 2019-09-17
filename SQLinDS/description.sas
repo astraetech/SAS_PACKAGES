@@ -9,7 +9,7 @@ Title: SQL queries in Data Step                  :/*required, not null*/
 Version: 1.0                                     :/*required, not null*/
 Author: Bartosz Jablonski (yabwon@gmail.com)     :/*required, not null*/
 Maintainer: Bartosz Jablonski (yabwon@gmail.com) :/*required, not null*/
-License: GPL2
+License: MIT                                     :/*required, not null, values: MIT, GPL2, BSD, etc.*/
 Encoding: UTF8                                   :/*required, not null, values: UTF8, WLATIN1, LATIN2, etc. */
 
 /* **DESCRIPTION** */

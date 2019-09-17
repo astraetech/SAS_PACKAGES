@@ -1,18 +1,40 @@
 /*** HELP START ***/
 
-/**###################################################################**/
-/*                                                                     */
-/*  Copyright Bartosz Jablonski, July 2019.                            */
-/*                                                                     */
-/*  Code is free and open source. If you want - you can use it.        */
-/*  I tested it the best I could                                       */
-/*  but it comes with absolutely no warranty whatsoever.               */
-/*  If you cause any damage or something - it will be your own fault.  */
-/*  You have been warned! You are using it on your own risk.           */
-/*  However, if you decide to use it remember to mention author.       */
-/*  Bartosz Jablonski (yabwon@gmail.com)                               */
-/*                                                                     */
-/**###################################################################**/
+/**############################################################################**/
+/*                                                                              */
+/*  Copyright Bartosz Jablonski, Jully 2019.                                    */
+/*                                                                              */
+/*  Code is free and open source. If you want - you can use it.                 */
+/*  I tested it the best I could                                                */
+/*  but it comes with absolutely no warranty whatsoever.                        */
+/*  If you cause any damage or something - it will be your own fault.           */
+/*  You've been warned! You are using it on your own risk.                      */
+/*  However, if you decide to use it don't forget to mention author:            */
+/*  Bartosz Jablonski (yabwon@gmail.com)                                        */
+/*                                                                              */
+/*  Here is the official version:                                               */
+/*
+  Copyright (c) 2019 Bartosz Jablonski (yabwon@gmail.com)
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included 
+  in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+                                                                                 */
+/**#############################################################################**/
 
 /* Macros to load or to unload SAS packages */
 /* A SAS package is a zip file containing a group 
@@ -22,7 +44,7 @@
 */
 /*
 TODO:
-- makro do listowania dostepnych pakietow ze wskazanego folderu
+- makro do listowania dostepnych pakietow ze wskazanego folderu [DONE] sprawdz: %listPackages()
 */
 /*** HELP END ***/
 
@@ -35,6 +57,13 @@ TODO:
 , source2 = /*source2*/               /* option to print out details, null by default */
 )/secure;
 /*** HELP END ***/
+  %local ls_tmp ps_tmp notes_tmp source_tmp;
+  %let ls_tmp     = %sysfunc(getoption(ls));      
+  %let ps_tmp     = %sysfunc(getoption(ps));      
+  %let notes_tmp  = %sysfunc(getoption(notes));   
+  %let source_tmp = %sysfunc(getoption(source));  
+  options NOnotes NOsource ls=MAX ps=MAX;
+
   filename package ZIP 
   /* put location of package myPackageFile.zip here */
     "&path./%lowcase(&packageName.).zip" %unquote(&options.)
@@ -43,6 +72,7 @@ TODO:
     %do;
       %include package(packagemetadata.sas) / &source2.;
       filename package clear;
+      options ls = &ls_tmp. ps = &ps_tmp. &notes_tmp. &source_tmp.;
       filename package ZIP 
         "&path./%lowcase(&packageName.).zip" %unquote(&options.)  
         ENCODING =
@@ -53,6 +83,7 @@ TODO:
     %end;
   %else %put ERROR:[&sysmacroname] File "&path./&packageName..zip" does not exist;
   filename package clear;
+  options ls = &ls_tmp. ps = &ps_tmp. &notes_tmp. &source_tmp.;
 %mend loadPackage;
 
 /*** HELP START ***/
@@ -64,6 +95,13 @@ TODO:
 , source2 = /*source2*/               /* option to print out details, null by default */
 )/secure;
 /*** HELP END ***/
+  %local ls_tmp ps_tmp notes_tmp source_tmp;
+  %let ls_tmp     = %sysfunc(getoption(ls));      
+  %let ps_tmp     = %sysfunc(getoption(ps));      
+  %let notes_tmp  = %sysfunc(getoption(notes));   
+  %let source_tmp = %sysfunc(getoption(source));  
+  options NOnotes NOsource ls=MAX ps=MAX;
+
   filename package ZIP 
   /* put location of package myPackageFile.zip here */
     "&path./%lowcase(&packageName.).zip" %unquote(&options.)
@@ -72,6 +110,7 @@ TODO:
     %do;
       %include package(packagemetadata.sas) / &source2.;
       filename package clear;
+      options ls = &ls_tmp. ps = &ps_tmp. &notes_tmp. &source_tmp.;
       filename package ZIP 
         "&path./%lowcase(&packageName.).zip" %unquote(&options.)  
         ENCODING =
@@ -82,6 +121,7 @@ TODO:
     %end;
   %else %put ERROR:[&sysmacroname] File "&path./&packageName..zip" does not exist;
   filename package clear;
+  options ls = &ls_tmp. ps = &ps_tmp. &notes_tmp. &source_tmp.;
 %mend unloadPackage;
 
 /*** HELP START ***/
@@ -94,6 +134,13 @@ TODO:
 , source2 = /*source2*/               /* option to print out details, null by default */
 )/secure;
 /*** HELP END ***/
+  %local ls_tmp ps_tmp notes_tmp source_tmp;
+  %let ls_tmp     = %sysfunc(getoption(ls));      
+  %let ps_tmp     = %sysfunc(getoption(ps));      
+  %let notes_tmp  = %sysfunc(getoption(notes));   
+  %let source_tmp = %sysfunc(getoption(source));  
+  options NOnotes NOsource ls=MAX ps=MAX;
+
   filename package ZIP 
   /* put location of package myPackageFile.zip here */
     "&path./%lowcase(&packageName.).zip" %unquote(&options.)
@@ -102,6 +149,7 @@ TODO:
     %do;
       %include package(packagemetadata.sas) / &source2.;
       filename package clear;
+      options ls = &ls_tmp. ps = &ps_tmp. &notes_tmp. &source_tmp.;
       filename package ZIP 
         "&path./%lowcase(&packageName.).zip" %unquote(&options.) 
         ENCODING =
@@ -112,6 +160,7 @@ TODO:
     %end;
   %else %put ERROR:[&sysmacroname] File "&path./&packageName..zip" does not exist;
   filename package clear;
+  options ls = &ls_tmp. ps = &ps_tmp. &notes_tmp. &source_tmp.;
 %mend helpPackage;
 
 

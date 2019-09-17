@@ -1,18 +1,40 @@
 /*** HELP START ***/
 
-/**###################################################################**/
-/*                                                                     */
-/*  Copyright Bartosz Jablonski, September 2019.                       */
-/*                                                                     */
-/*  Code is free and open source. If you want - you can use it.        */
-/*  I tested it the best I could                                       */
-/*  but it comes with absolutely no warranty whatsoever.               */
-/*  If you cause any damage or something - it will be your own fault.  */
-/*  You've been warned! You are using it on your own risk.             */
-/*  However, if you decide to use it don't forget to mention author.   */
-/*  Bartosz Jablonski (yabwon@gmail.com)                               */
-/*                                                                     */
-/**###################################################################**/
+/**############################################################################**/
+/*                                                                              */
+/*  Copyright Bartosz Jablonski, September 2019.                                */
+/*                                                                              */
+/*  Code is free and open source. If you want - you can use it.                 */
+/*  I tested it the best I could                                                */
+/*  but it comes with absolutely no warranty whatsoever.                        */
+/*  If you cause any damage or something - it will be your own fault.           */
+/*  You've been warned! You are using it on your own risk.                      */
+/*  However, if you decide to use it don't forget to mention author:            */
+/*  Bartosz Jablonski (yabwon@gmail.com)                                        */
+/*                                                                              */
+/*  Here is the official version:                                               */
+/*
+  Copyright (c) 2019 Bartosz Jablonski (yabwon@gmail.com)
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included 
+  in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+                                                                                 */
+/**#############################################################################**/
 
 /* Macros to generte SAS packages */
 /* A SAS package is a zip file containing a group 
@@ -46,6 +68,8 @@ filename &_DESCR_. "&filesLocation./description.sas" lrecl = 256;
            packageTitle      /* title of the package, required*/
            packageAuthor     /* required */
            packageMaintainer /* required */
+           packageEncoding   /* required */
+           packageLicense    /* required */
            ;
     data _null_;
       infile &_DESCR_.;
@@ -58,7 +82,8 @@ filename &_DESCR_. "&filesLocation./description.sas" lrecl = 256;
         when(upcase(scan(_INFILE_, 1, ":")) = "MAINTAINER") call symputX("packageMaintainer", scan(_INFILE_, 2, ":"),"L");
         when(upcase(scan(_INFILE_, 1, ":")) = "TITLE")      call symputX("packageTitle",      scan(_INFILE_, 2, ":"),"L");
         when(upcase(scan(_INFILE_, 1, ":")) = "ENCODING")   call symputX("packageEncoding",   scan(_INFILE_, 2, ":"),"L");
-        
+        when(upcase(scan(_INFILE_, 1, ":")) = "LICENSE")    call symputX("packageLicense",    scan(_INFILE_, 2, ":"),"L");
+
         /* stop at the begining of description */
         when(upcase(scan(_INFILE_, 1, ":")) = "DESCRIPTION START") stop;
         otherwise;
@@ -72,6 +97,7 @@ filename &_DESCR_. "&filesLocation./description.sas" lrecl = 256;
      or (%nrbquote(&packageMaintainer.) = )
      or (%nrbquote(&packageTitle.) = )
      or (%nrbquote(&packageEncoding.) = )
+     or (%nrbquote(&packageLicense.) = )
       %then
         %do;
           %put ERROR: At least one of descriptors is missing!;
@@ -81,16 +107,17 @@ filename &_DESCR_. "&filesLocation./description.sas" lrecl = 256;
           %put ERROR- &=packageVersion.;
           %put ERROR- &=packageAuthor.;
           %put ERROR- &=packageMaintainer.;
-          %put ERROR- &=packageEncoding.;          
+          %put ERROR- &=packageEncoding.;
+          %put ERROR- &=packageLicense.; 
           %put ERROR- ;
           %abort;
         %end;
     /* test for package name */
-    %if %sysfunc(lengthn(&packageName.)) > 32 %then
+    %if %sysfunc(lengthn(&packageName.)) > 24 %then
       %do;
-        %put ERROR: Package name is more than 32 characters long.;
+        %put ERROR: Package name is more than 24 characters long.;
         %put ERROR- The name is used for functions%str(%') dataset name;
-        %put ERROR- and for formats%str(%') catalog name.;
+        %put ERROR- and for formats%str(%') catalog name (with sufix).;
         %put ERROR- The length is %sysfunc(lengthn(&packageName.)). Try something shorter.;
         %abort;
       %end;
@@ -141,7 +168,7 @@ Title: A title/brief info for log note about your packages
 Version: X.Y                                    
 Author: Firstname1 Lastname1 (xxxxxx1@yyyyy.com), Firstname2 Lastname2 (xxxxxx2@yyyyy.com)     
 Maintainer: Firstname Lastname (xxxxxx@yyyyy.com)
-License: GPL2
+License: MIT
 Encoding: UTF8                                  
 
 DESCRIPTION START:
@@ -256,7 +283,7 @@ title1 "Package's location is: &filesLocation.";
 title2 "User: &SYSUSERID., datetime: %qsysfunc(datetime(), datetime21.), SAS version: &SYSVLONG4.";
 title3 "Package's encoding: '&packageEncoding.', session's encoding: '&SYSENCODING.'.";
 title4 " ______________________________ ";
-title5 "List of files for package: &packageName. (version &packageVersion.)";
+title5 "List of files for package: &packageName. (version &packageVersion.), license: &packageLicense.";
 proc print data = &filesWithCodes.(drop=base);
 run;
 title;
@@ -286,6 +313,7 @@ data _null_;
   put ' call symputX("packageAuthor",     " ", "L");';
   put ' call symputX("packageMaintainer", " ", "L");';
   put ' call symputX("packageEncoding",   " ", "L");'; 
+  put ' call symputX("packageLicense",    " ", "L");';  
   put ' run; ';
 
   put ' %let packageName       =' "&packageName.;";
@@ -294,7 +322,7 @@ data _null_;
   put ' %let packageAuthor     =' "&packageAuthor.;";
   put ' %let packageMaintainer =' "&packageMaintainer.;";
   put ' %let packageEncoding   =' "&packageEncoding.;";
-
+  put ' %let packageLicense    =' "&packageLicense.;";
   put ' ; ';
 
   stop;
@@ -308,9 +336,9 @@ data _null_;
  
   put 'filename package list;' /;
   put ' %put NOTE- ;'; 
-  put ' %put NOTE: ' @; put "Loading package &packageName., version &packageVersion.; ";
+  put ' %put NOTE: ' @; put "Loading package &packageName., version &packageVersion., license &packageLicense.; ";
   put ' %put NOTE: ' @; put "*** &packageTitle. ***; ";
-  put ' %put NOTE- ' @; put "Generated: %sysfunc(datetime(), datetime18.); ";
+  put ' %put NOTE- ' @; put "Generated: %sysfunc(datetime(), datetime21.); ";
   put ' %put NOTE- ' @; put "Author(s): &packageAuthor.; ";
   put ' %put NOTE- ' @; put "Maintainer(s): &packageMaintainer.; ";
   put ' %put NOTE- ;';
@@ -350,7 +378,7 @@ data _null_;
     /* add the link to the functions' dataset, only for the first occurence */
     if 1 = isFunction and (upcase(type)=:'FUNCTION') then
       do;
-        put "options APPEND=(cmplib = work.%lowcase(&packageName.));";
+        put "options APPEND=(cmplib = work.%lowcase(&packageName.fcmp));";
         put '%put NOTE- ;';
         put '%put NOTE:[CMPLIB] %sysfunc(getoption(cmplib));' /;
       end;
@@ -358,14 +386,14 @@ data _null_;
     /* add the link to the formats' catalog, only for the first occurence  */
     if 1 = isFormat and (upcase(type)=:'FORMAT') then
       do;
-        put "options INSERT=( fmtsearch = work.%lowcase(&packageName.) );";
+        put "options INSERT=( fmtsearch = work.%lowcase(&packageName.format) );";
         put '%put NOTE- ;';
         put '%put NOTE:[FMTSEARCH] %sysfunc(getoption(fmtsearch));'/;
       end;
   end;
 
   put '%put NOTE- ;';
-  put '%put NOTE: '"Loading package &packageName., version &packageVersion.;";
+  put '%put NOTE: '"Loading package &packageName., version &packageVersion., license &packageLicense.;";
   put '%put NOTE- *** END ***;' /;
   put "/* load.sas end */" /;
   stop;
@@ -379,7 +407,7 @@ data _null_;
   file &zipReferrence.(unload.sas);
 
   put 'filename package list;' /;
-  put '%put NOTE: '"Unloading package &packageName., version &packageVersion.;";
+  put '%put NOTE: '"Unloading package &packageName., version &packageVersion., license &packageLicense.;";
   put '%put NOTE- *** START ***;' /;
 
   /* include "cleaning" files */
@@ -441,7 +469,7 @@ data _null_;
   put '  )';
   put '  and objtype in ("FORMAT" "FORMATC" "INFMT" "INFMTC")';
   put '  and libname  = "WORK"';
-  put "  and memname = '%upcase(&packageName.)'";
+  put "  and memname = '%upcase(&packageName.format)'";
   put '  )';
 
   put '  order by objtype, memname, objname';
@@ -463,11 +491,11 @@ data _null_;
   /* delete the link to the formats catalog */
   if isFormat then
     do;
-      put "proc delete data = work.%lowcase(&packageName.)(mtype = catalog);";
+      put "proc delete data = work.%lowcase(&packageName.format)(mtype = catalog);";
       put 'run;';
       put 'options fmtsearch = (%unquote(%sysfunc(tranwrd(' /
           '%lowcase(%sysfunc(getoption(fmtsearch)))' /
-          ',%str(' "work.%lowcase(&packageName.)" '), %str() ))));';
+          ',%str(' "work.%lowcase(&packageName.)format" '), %str() ))));';
       put 'options fmtsearch = (%unquote(%sysfunc(compress(' /
           '%sysfunc(getoption(fmtsearch))' /
           ', %str(()) ))));';
@@ -475,7 +503,7 @@ data _null_;
     end;
 
   /* delete functions */
-  put "proc fcmp outlib = work.%lowcase(&packageName.).package;";
+  put "proc fcmp outlib = work.%lowcase(&packageName.fcmp).package;";
   isFunction = 0;
   EOF = 0;
   do until(EOF);
@@ -493,7 +521,7 @@ data _null_;
     do;
       put 'options cmplib = (%unquote(%sysfunc(tranwrd(' /
           '%lowcase(%sysfunc(getoption(cmplib)))' /
-          ',%str(' "work.%lowcase(&packageName.)" '), %str() ))));';
+          ',%str(' "work.%lowcase(&packageName.fcmp)" '), %str() ))));';
       put 'options cmplib = (%unquote(%sysfunc(compress(' /
           '%sysfunc(getoption(cmplib))' /
           ',%str(()) ))));';
@@ -523,7 +551,7 @@ data _null_;
   end;
   put "run;" /;
  
-  put '%put NOTE: '"Unloading package &packageName., version &packageVersion.;";
+  put '%put NOTE: '"Unloading package &packageName., version &packageVersion., license &packageLicense.;";
   put '%put NOTE- *** END ***;';
   put '%put NOTE- ;';
  
@@ -541,9 +569,9 @@ data _null_;
 
   put 'filename package list;' /;
   put ' %put NOTE- ;';
-  put ' %put NOTE: '"Help for package &packageName., version &packageVersion.;";
+  put ' %put NOTE: '"Help for package &packageName., version &packageVersion., license &packageLicense.;";
   put ' %put NOTE: ' @; put "*** &packageTitle. ***; ";
-  put ' %put NOTE- ' @; put "Generated: %sysfunc(datetime(), datetime18.); ";
+  put ' %put NOTE- ' @; put "Generated: %sysfunc(datetime(), datetime21.); ";
   put ' %put NOTE- ' @; put "Author(s): &packageAuthor.; ";
   put ' %put NOTE- ' @; put "Maintainer(s): &packageMaintainer.; ";
   put ' %put NOTE- ;';
@@ -644,7 +672,7 @@ data _null_;
   put "run; ";
   put 'options ls = &ls_tmp. ps = &ps_tmp. &notes_tmp. &source_tmp.; ' /;
  
-  put '%put NOTE: '"Help for package &packageName., version &packageVersion.;";
+  put '%put NOTE: '"Help for package &packageName., version &packageVersion., license &packageLicense.;";
   put '%put NOTE- *** END ***;' /; 
   put "/* help.sas end */";
 

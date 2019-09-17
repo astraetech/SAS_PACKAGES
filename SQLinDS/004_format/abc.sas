@@ -20,7 +20,7 @@
 
 /*** HELP END ***/
 
-proc format lib = work.&packageName.;
+proc format lib = work.&packageName.format;
   value ABC
     1="A"
     2="B"
