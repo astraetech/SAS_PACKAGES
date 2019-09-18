@@ -1,0 +1,26 @@
+/* "materialne" */
+
+potrzebny jest tylko Base SAS(r)
+
+jeden plik przekazywany uzytkownikowi (przenoszalność),
+
+wykonanie kodu w kolejności zgodnej z oczekiwaniem developera,
+
+proste reguły generowania i minimalne wymogi formalne przy tworzeniu pakietu (małe litery, segregowanie kodu w folderach, plik description, podział na makra, funkcje, formaty, dane),
+
+niezalezne od systemu operacyjnego (e.g. katalogi),
+
+automatyczne generowanie helpa (wyszukiwanie),
+
+"free code" w katalogach exec
+
+łatwe uruchomienie (na 2 sposoby),
+
+automatyczne ładowanie i usuwanie komponentów,
+
+
+
+/* "nie materialne" */
+możliwość dzielenia się kodem (nawet skomplikowanym) z innymi,
+
+budowanie społeczności
