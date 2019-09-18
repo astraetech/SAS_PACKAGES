@@ -159,9 +159,12 @@ filename &zipReferrence. ZIP "&filesLocation./%lowcase(&packageName.).zip";
   Locate all files with code in base folder (i.e. at filesLocation directory) 
 */
 /*
-  Remember to prepare description.sas file with
-  the following obligatory information:
+  Remember to prepare the description.sas file for you package.
+  The collon (:) is a field separator and is restricted 
+  in lines of the header part.                          
+  The file should contain the following obligatory information:
 --------------------------------------------------------------------------------------------
+>> **HEADER** <<
 Type: Package
 Package: ShortPackageName                                
 Title: A title/brief info for log note about your packages                 
@@ -171,6 +174,8 @@ Maintainer: Firstname Lastname (xxxxxx@yyyyy.com)
 License: MIT
 Encoding: UTF8                                  
 
+>> **DESCRIPTION** <<
+>> All the text below will be used in help <<
 DESCRIPTION START:
   Xxxxxxxxxxx xxxxxxx xxxxxx xxxxxxxx xxxxxxxx. Xxxxxxx
   xxxx xxxxxxxxxxxx xx xxxxxxxxxxx xxxxxx. Xxxxxxx xxx
@@ -178,7 +183,7 @@ DESCRIPTION START:
 DESCRIPTION END:
 --------------------------------------------------------------------------------------------
 
-  Name of the 'type' of folder and files.sas inside must be in low case letters.
+  Name of the 'type' of folder and files.sas inside must be in _low_ case letters.
 
   If order of loading is important, the 'sequential number'
   can be used to order multiple types in the wey you wish.
@@ -192,16 +197,22 @@ DESCRIPTION END:
    |
    +-001_macro [one file one macro]
    |
-   +-002_function [one file one function]
+   +-002_function [one file one function,
+   |               option OUTLIB= should be: work.&packageName.fcmp.package 
+   |               option INLIB=  should be: work.&packageName.fcmp
+   |               (both literally with macrovariable name and "fcmp" sufix)]
    |
-   +-003_format [one file one format]
+   +-003_format [one file one format,
+   |             option LIB= should be: work.&packageName.format 
+   |             (literally with macrovariable name and "format" sufix)]
    |
    +-004_data [one file one dataset]
    |
-   +-005_exec [content of the files will be printed to the log before execution]
+   +-005_exec [so called "free code", content of the files will be printed 
+   |           to the log before execution]
    |
-   +-006_format [if codes are dependent you can order them in folders, 
-   |             e.g. 003 will be executed before 006]
+   +-006_format [if your codes depend eachother you can order them in folders, 
+   |             e.g. code from 003_... will be executed before 006_...]
    |
    +-007_function
    |
@@ -209,7 +220,8 @@ DESCRIPTION END:
    |
    +-...
    |
-   +-00n_clean [if you need to clean something up after exec file execution]
+   +-00n_clean [if you need to clean something up after exec file execution,
+   |            content of the files will be printed to the log before execution]
    |
    +-...
    |
