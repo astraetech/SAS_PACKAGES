@@ -191,40 +191,59 @@ DESCRIPTION END:
   The "tree structure" of the folder could be for example as follows:
 
 --------------------------------------------------------------------------------------------
+ <packageName>
   ..
    |
    +-000_libname [one file one libname]
+   |           |
+   |           +-abc.sas [a file with a code creating libname ABC]
    |
    +-001_macro [one file one macro]
+   |         |
+   |         +-hij.sas [a file with a code creating macro HIJ]
+   |         |
+   |         +-klm.sas [a file with a code creating macro KLM]
    |
    +-002_function [one file one function,
-   |               option OUTLIB= should be: work.&packageName.fcmp.package 
-   |               option INLIB=  should be: work.&packageName.fcmp
-   |               (both literally with macrovariable name and "fcmp" sufix)]
+   |            |  option OUTLIB= should be: work.&packageName.fcmp.package 
+   |            |  option INLIB=  should be: work.&packageName.fcmp
+   |            |  (both literally with macrovariable name and "fcmp" sufix)]
+   |            |
+   |            +-efg.sas [a file with a code creating function EFG]
    |
    +-003_format [one file one format,
-   |             option LIB= should be: work.&packageName.format 
-   |             (literally with macrovariable name and "format" sufix)]
+   |          |  option LIB= should be: work.&packageName.format 
+   |          |  (literally with macrovariable name and "format" sufix)]
+   |          |
+   |          +-efg.sas [a file with a code creating format EFG and informat EFG]
    |
    +-004_data [one file one dataset]
+   |        |
+   |        +-abc.efg.sas [a file with a code creating dataset EFG in library ABC] 
    |
    +-005_exec [so called "free code", content of the files will be printed 
-   |           to the log before execution]
+   |        |  to the log before execution]
+   |        |
+   |        +-<no file, in this case folder may be skipped>
    |
    +-006_format [if your codes depend eachother you can order them in folders, 
-   |             e.g. code from 003_... will be executed before 006_...]
-   |
+   |          |  e.g. code from 003_... will be executed before 006_...]
+   |          |
+   |          +-abc.sas [a file with a code creating format ABC, 
+   |                     used in the definition of the format EFG]
    +-007_function
+   |            |
+   |            +-<no file, in this case folder may be skipped>
    |
-   +-<sequential number>_<type [in lowcase]>
+   +-<sequential number>_<type [in lower case]>
    |
    +-...
    |
    +-00n_clean [if you need to clean something up after exec file execution,
-   |            content of the files will be printed to the log before execution]
-   |
+   |         |  content of the files will be printed to the log before execution]
+   |         |
+   |         +-<no file, in this case folder may be skipped>
    +-...
-   |
    ...
 --------------------------------------------------------------------------------------------
 

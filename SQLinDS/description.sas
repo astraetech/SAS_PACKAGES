@@ -1,10 +1,10 @@
-/* This is the description file for the package.         */
+﻿/* This is the description file for the package.         */
 /* The collon (:) is a field separator and is restricted */
 /* in lines of the header part.                          */
 
 /* **HEADER** */
 Type: Package                                    :/*required, not null, constant value*/
-Package: SQLinDS                                 :/*required, not null, nameing restrictions like for a dataset name! */
+Package: SQLinDS                                 :/*required, not null, up to 24 characters, naming restrictions like for a dataset name! */
 Title: SQL queries in Data Step                  :/*required, not null*/
 Version: 1.0                                     :/*required, not null*/
 Author: Bartosz Jablonski (yabwon@gmail.com)     :/*required, not null*/
