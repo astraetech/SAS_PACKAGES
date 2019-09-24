@@ -1,4 +1,4 @@
-﻿/* This is the description file for the package.         */
+/* This is the description file for the package.         */
 /* The collon (:) is a field separator and is restricted */
 /* in lines of the header part.                          */
 
@@ -17,7 +17,7 @@ Encoding: UTF8                                   :/*required, not null, values: 
 DESCRIPTION START:
 
 The SQLinDS package is an implementation of  
-the macro-function-sanwich concept introduced in: 
+the macro-function-sandwich concept introduced in: 
 "Use the Full Power of SAS in Your Function-Style Macros"
 the article by Mike Rhoads, Westat, Rockville, MD
 

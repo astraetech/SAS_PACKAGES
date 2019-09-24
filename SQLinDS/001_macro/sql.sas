@@ -1,4 +1,4 @@
-﻿/*** HELP START ***/
+/*** HELP START ***/
 
 /* >>> %SQL() macro: <<<
  *
@@ -36,7 +36,7 @@
 /* outer macro */
 %MACRO SQL() / PARMBUFF SECURE; 
   %let SYSPBUFF = %superq(SYSPBUFF); /* macroquoting */
-  %let SYSPBUFF = %substr(&SYSPBUFF, 2, %LENGTH(&SYSPBUFF) - 2); /* remobe brackets from the SYSPBUFF */
+  %let SYSPBUFF = %substr(&SYSPBUFF, 2, %LENGTH(&SYSPBUFF) - 2); /* remove brackets */
   %let SYSPBUFF = %superq(SYSPBUFF); /* macroquoting */
   %let SYSPBUFF = %sysfunc(quote(&SYSPBUFF)); /* quotes */
   %put NOTE-***the querry***; /* print out the querry in the log */
@@ -45,5 +45,6 @@
 
   %local UNIQUE_INDEX; /* internal variable, a unique index for views */
     %let UNIQUE_INDEX = &SYSINDEX; 
-  %sysfunc(dsSQL(&UNIQUE_INDEX, &SYSPBUFF)) /* <-- call dsSQL() function, see the WORK.SQLinDS dataset */
+  %sysfunc(dsSQL(&UNIQUE_INDEX, &SYSPBUFF)) /* <-- call dsSQL() function, 
+                                                   see the WORK.SQLinDSfcmp dataset */
 %MEND SQL;
