@@ -51,13 +51,16 @@
  filesLocation=%sysfunc(pathname(work))/%lowcase(&packageName.) /* place for packages' files */
 )/secure;
 /*** HELP END ***/
-%local zipReferrence filesWithCodes _DESCR_ _RC_;
+%local zipReferrence filesWithCodes _DESCR_ _LIC_ _RC_;
 %let   zipReferrence = _%sysfunc(datetime(), hex6.)_;
 %let   filesWithCodes = WORK._%sysfunc(datetime(), hex16.)_;
-%let   _DESCR_ = _%sysfunc(datetime(), hex6.)c;
+%let   _DESCR_ = _%sysfunc(datetime(), hex6.)d;
+%let   _LIC_   = _%sysfunc(datetime(), hex6.)l;
 
-/* collect package metadata from the description .sas file */
+/* collect package metadata from the description.sas file */
 filename &_DESCR_. "&filesLocation./description.sas" lrecl = 256;
+/* file contains licence */
+filename &_LIC_.   "&filesLocation./license.sas" lrecl = 256;
 
 %if %sysfunc(fexist(&_DESCR_.)) %then 
   %do;
@@ -326,6 +329,46 @@ data _null_;
   input; 
   put _INFILE_;
 run;
+
+/* package's license */
+%if %sysfunc(fexist(&_LIC_.)) %then 
+  %do;
+    data _null_;
+      infile &_LIC_.;
+      file &zipReferrence.(license.sas);
+      input; 
+      put _INFILE_;
+    run;
+  %end;
+%else
+  %do;
+    %put WARNING:[License] No license.sas file provided, default (MIT) licence file will be generated.;
+    %let packageLicense = MIT;
+     data _null_;
+      file &zipReferrence.(license.sas);
+      put " ";
+      put "  Copyright (c) %sysfunc(today(),year4.) &packageAuthor.                        ";
+      put "                                                                                ";
+      put "  Permission is hereby granted, free of charge, to any person obtaining a copy  ";
+      put '  of this software and associated documentation files (the "Software"), to deal ';
+      put "  in the Software without restriction, including without limitation the rights  ";
+      put "  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell     ";
+      put "  copies of the Software, and to permit persons to whom the Software is         ";
+      put "  furnished to do so, subject to the following conditions:                      ";
+      put "                                                                                ";
+      put "  The above copyright notice and this permission notice shall be included       ";
+      put "  in all copies or substantial portions of the Software.                        ";
+      put "                                                                                ";
+      put '  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR    ';
+      put "  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,      ";
+      put "  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE   ";
+      put "  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER        ";
+      put "  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, ";
+      put "  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE ";
+      put "  SOFTWARE.                                                                     ";
+      put " ";
+    run;
+  %end;
 
 /* package's metadata */
 data _null_;
@@ -629,6 +672,17 @@ data _null_;
   put '  else stop;                                                              ';
   put 'run;                                                                      ' /;
 
+  /* license info */
+  put 'data _null_;                                                   ';
+  put '  if upcase(strip(symget("helpKeyword"))) = "LICENSE" then     ';
+  put '    do until (EOF);                                            ';
+  put '      infile package(license.sas) end = EOF;                   ';
+  put '      input;                                                   ';
+  put '      put "*> " _infile_;                                      ';
+  put '    end;                                                       ';
+  put '  else stop;                                                   ';
+  put 'run;                                                           ' /;
+
   put 'data _%sysfunc(datetime(), hex16.)_;                           ';
   put 'infile cards4 dlm = "/";                                       ';
   put 'input @;                                                       ';
@@ -667,7 +721,7 @@ data _null_;
 */
   /* loop through content found and print info to the log */
   put 'data _null_;                                                                                                        ';
-  put 'if strip(symget("helpKeyword")) = "" then do; stop; end;                                                            ';
+  put 'if upcase(strip(symget("helpKeyword"))) in (" " "LICENSE") then do; stop; end;                                      ';
   put 'if NOBS = 0 then do; ' /
         'put; put '' *> No help info found. Try %helpPackage(packageName,*) to display all.''; put; stop; ' / 
       'end; ';
@@ -759,11 +813,13 @@ TODO:
 
 - weryfikacja "niepustosci" obowiazkowych argumentow   [v]
 
-- dodac typ "clear" do czyszczenia po plikach 'exec'
+- dodac typ "clear" do czyszczenia po plikach 'exec' [v]
 
 - doadc sprawdzanie liczby wywołan procedury fcmp, format i slowa '%macro(' w plikach z kodami
 
 - syspackages - makrozmienna z lista zaladowanych pakietow
+
+- dodac typ "imp", "ds2", "proto"
 */
 
 /*
