@@ -21,23 +21,29 @@ options APPEND=(cmplib = WORK.DYNAMICFUNCTIONARRAY) ;
 
 options cmplib = _null_;
 
+/*numeric and character dynamic array*/
 %crDFArray2(DYNARRAYN, debug=0, resizefactor=4999, outlib = work.DynamicFunctionArray.package);
 %crDHArray(DYNARRAYC, type=$ 256, debug=0, outlib = work.DynamicFunctionArray.package, hexp=13);
 
+/*numeric and character dynamic stack*/
 %crDHStack(STACKN, type=8, debug=0, outlib = work.DynamicFunctionArray.package, hexp=13);
 %crDHStack(STACKC, type=$ 256, debug=0, outlib = work.DynamicFunctionArray.package, hexp=13);
 
+/*numeric and character dynamic queue (fifo)*/
 %crDHQueue(FIFON, type=8, debug=0, outlib = work.DynamicFunctionArray.package, hexp=13);
 %crDHQueue(FIFOC, type=$ 256, debug=0, outlib = work.DynamicFunctionArray.package, hexp=13);
 
+/*numeric and character dynamic ordered stack*/
 %crDHOrdStack(ASCSTACKN, type=8, order=A /*A or D*/, debug=0, outlib = work.DynamicFunctionArray.package, hexp=13);
 %crDHOrdStack(DESCSTACKN, type=8, order=D /*A or D*/, debug=0, outlib = work.DynamicFunctionArray.package, hexp=13);
 %crDHOrdStack(ASCSTACKC, type=$ 256, order=A /*A or D*/, debug=0, outlib = work.DynamicFunctionArray.package, hexp=13);
 %crDHOrdStack(DESCSTACKC, type=$ 256, order=D /*A or D*/, debug=0, outlib = work.DynamicFunctionArray.package, hexp=13);
 
+/*numeric and character dynamic priority queue, for the same priority latest returned first*/
 %crDHPrtQueue(PRTPQUEUEN, type=8, newOnTop=+ /*+ or -*/, debug=0, outlib = work.DynamicFunctionArray.package, hexp=13);
 %crDHPrtQueue(PRTPQUEUEC, type=$ 256, newOnTop=+ /*+ or -*/, debug=0, outlib = work.DynamicFunctionArray.package, hexp=13);
 
+/*numeric and character dynamic priority queue, for the same priority latest returned last*/
 %crDHPrtQueue(PRTNQUEUEN, type=8, newOnTop=- /*+ or -*/, debug=0, outlib = work.DynamicFunctionArray.package, hexp=13);
 %crDHPrtQueue(PRTNQUEUEC, type=$ 256, newOnTop=- /*+ or -*/, debug=0, outlib = work.DynamicFunctionArray.package, hexp=13);
 
@@ -48,7 +54,7 @@ options cmplib = &_cmplib_.;
 %mend DynamicFunctionArray_functions;
 %DynamicFunctionArray_functions()
 
-/* delete macro DynamicFunctionArray_functions since it is not needed */
+/* delete macro DynamicFunctionArray_functions since it is not needed anymore*/
 proc sql;
   create table _%sysfunc(datetime(), hex16.)_ as
   select memname, objname
