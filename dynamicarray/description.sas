@@ -4,19 +4,19 @@
 
 /* **HEADER** */
 Type: Package                                    :/*required, not null, constant value*/
-Package: dynamicArray                            :/*required, not null*/
+Package: dynamicFunctionArray                    :/*required, not null*/
 Title: Dynamic arrays and other data structures  :/*required, not null*/
 Version: 0.1                                     :/*required, not null*/
 Author: Bartosz Jablonski (yabwon@gmail.com)     :/*required, not null*/
 Maintainer: Bartosz Jablonski (yabwon@gmail.com) :/*required, not null*/
-License: GPL2
+License: MIT
 Encoding: UTF8                                   :/*required, not null*/
 
 /* **DESCRIPTION** */
 /* All the text below will be used in help */
 DESCRIPTION START:
 
-The dynamicArray package implements:
+The dynamicFunctionArray package implements:
  - dynamic numeric and character arrays,
  - dyncamic stacks,
  - dynamic queues (fifo),

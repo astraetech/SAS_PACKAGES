@@ -58,189 +58,211 @@ proc fcmp outlib = &outlib.;
     length searchKey searchCnt 8;
     declare hash SEARCH(ordered:"a", hashexp:&hashexp.);
     _rc_ = SEARCH.defineKey("searchKey");
-    _rc_ = SEARCH.defineData("searchCnt");
+    _rc_ = SEARCH.defineData("searchKey","searchCnt","firstIndex");
     _rc_ = SEARCH.defineDone();
     declare hiter iSEARCH("SEARCH");
 
-    /* Output - get the data from an array */
-    if IO = 'O' or IO = 'o' then
-      do;
-        if (minposition <= position <= maxposition) 
-          then value = TEMP[position + offset];
-          else value = .;
+    select(upcase(IO));
+    /* Output - get the data from an array 
+     */
+      when ('OUTPUT', 'O', 'RETURN', 'R')
+        do;
+          if (minposition <= position <= maxposition) 
+            then value = TEMP[position + offset];
+            else value = .;
 
-        %if &debug %then %do;
-          _T_ = dim(TEMP);
-          put "NOTE:[&arrayName.] Debug O:" "dim(TEMP)=" _T_ "TEMP[position]=" TEMP[position + offset];
-        %end;
-        return;
-      end;
+          %if &debug %then %do;
+            _T_ = dim(TEMP);
+            put "NOTE:[&arrayName.] Debug O:" "dim(TEMP)=" _T_ "TEMP[position]=" TEMP[position + offset];
+          %end;
+          return;
+        end;
 
-    /* Find - search the data in array */
-    if IO = 'F' or IO = 'f' then
-      do;
-        searchKey = value;
-        searchCnt = .;
-        _rc_ = SEARCH.find();
-        position = searchCnt;
-        return;
-      end;
+    /* Find - search if the data exist in array, returns count 
+     */
+      when ('FIND', 'F', 'EXIST')
+        do;
+          searchKey = value;
+          searchCnt = .;
+          _rc_ = SEARCH.find();
+          position = searchCnt;
+          return;
+        end;
 
-    /* Input - insert the data into an array */
-    if IO = 'I' or IO = 'i' then
-      do;
+    /* firstIndex - search the first position of data in array, WHICHN substitute 
+     */
+      when ('WHICH', 'W')
+        do;
+          searchKey = value;
+          firstIndex = .;
+          _rc_ = SEARCH.find();
+          position = firstIndex;
+          return;
+        end;
 
-        if not(minposition <= position <= maxposition) then 
-          do;
-            put "ERROR: out of range!";
-            put "ERROR- values should be between " minposition " and " maxposition;
-            return;
-          end;
+    /* Input - insert the data into an array 
+     */
+      when ('INPUT', 'I')
+        do;
 
- 
-        searchKey = TEMP[position + offset];
-        searchCnt = .;
-        _rc_ = SEARCH.find();
-        searchCnt = searchCnt - 1;
-        if searchCnt > 0 then _rc_ = SEARCH.replace();
-                         else _rc_ = SEARCH.remove();
+          if not(minposition <= position <= maxposition) then 
+            do;
+              put "ERROR: out of range!";
+              put "ERROR- values should be between " minposition " and " maxposition;
+              return;
+            end;
 
-        TEMP[position + offset] = value;
+   
+          searchKey = TEMP[position + offset];
+          searchCnt = .;
+          firstIndex = .;
+          _rc_ = SEARCH.find();
+          searchCnt = searchCnt - 1;
+          if searchCnt > 0 then 
+            do;
+              if firstIndex = position + offset then
+                do firstIndex = firstIndex + 1 to maxposition 
+                  while (TEMP[FirstIndex] ne searchKey);
+                end;
+              _rc_ = SEARCH.replace();
+            end;
+          else _rc_ = SEARCH.remove();
 
-        searchKey = value;
-        searchCnt = .;
-        _rc_ = SEARCH.find();
-        searchCnt = max(1, searchCnt + 1);
-        _rc_ = SEARCH.replace();
+          TEMP[position + offset] = value;
 
-        %if &debug %then %do;
-          _T_ = dim(TEMP);
-          put "NOTE:[&arrayName.] Debug I: min=" minposition "and max=" maxposition;
-          put "NOTE:[&arrayName.] Debug I: dim(TEMP)=" _T_ "value=" value "position=" position "TEMP[position]=" TEMP[position + offset];
-        %end;
-        return;
-      end;
+          searchKey = value;
+          searchCnt = .;
+          firstIndex = .;
+          _rc_ = SEARCH.find();
+          searchCnt = max(1, searchCnt + 1);
+          if firstIndex > (position + offset) then FirstIndex = (position + index);  /* new: track FirstIndex */
+          _rc_ = SEARCH.replace();
+
+          %if &debug %then %do;
+            _T_ = dim(TEMP);
+            put "NOTE:[&arrayName.] Debug I: min=" minposition "and max=" maxposition;
+            put "NOTE:[&arrayName.] Debug I: dim(TEMP)=" _T_ "value=" value "position=" position "TEMP[position]=" TEMP[position + offset];
+          %end;
+          return;
+        end;
 
     /* Allocate - reserve space for array's width 
      *            and set starting value
      */
-    if IO = 'A' or IO = 'a' then
-      do;
-        if .z < position <= value then 
-          do;
-            /* to handle the 65535 issue */
-            _RESIZE_ = abs(value - position + 1);
-            if _RESIZE_ = 65535 then 
-              do;
-                _RESIZE_ = _RESIZE_ + 1;
-                put "NOTE: to handle 65535 issue array size set to 65536";
-              end;
+      when ('ALLOCATE', 'A')
+        do;
+          if .z < position <= value then 
+            do;
+              /* to handle the 65535 issue */
+              _RESIZE_ = abs(value - position + 1);
+              if _RESIZE_ = 65535 then 
+                do;
+                  _RESIZE_ = _RESIZE_ + 1;
+                  put "NOTE: to handle 65535 issue array size set to 65536";
+                end;
 
-            call dynamic_array(TEMP, _RESIZE_);
-            call fillmatrix(TEMP, .); 
-            _rc_              = SEARCH.clear();
-            searchKey         = .;
-            searchCnt         = _RESIZE_;
-            _rc_              = SEARCH.add();
-              
-            maxposition       = value;
-            minposition       = position;
-            offset            = 1 - position;
+              call dynamic_array(TEMP, _RESIZE_);
+              call fillmatrix(TEMP, .); 
+              _rc_              = SEARCH.clear();
+              searchKey         = .;
+              searchCnt         = _RESIZE_;
+              _rc_              = SEARCH.add();
+                
+              maxposition       = value;
+              minposition       = position;
+              offset            = 1 - position;
 
-            %if &debug %then %do;
-              _T_ = dim(TEMP);
-              put "NOTE:[&arrayName.] Debug A:" "dim(TEMP)=" _T_;
-            %end;
-            return;
-          end;
-        else 
-          do;
-            put "WARNING:" "Array's lower bound must be less or equal than upper bound.";
-            put "        " "Current values are: lower =" position " upper =" value;
-            put "        " "One element array created.";
-            call dynamic_array(TEMP, 1);
-            maxposition       = 1;
-            minposition       = 1;
-            TEMP[1]           = .;
-            offset            = 0;
-            _rc_              = SEARCH.clear();
-            searchKey         = .;
-            searchCnt         = 1;
-            _rc_              = SEARCH.add();
-            return;
-          end;
-      end;
+              %if &debug %then %do;
+                _T_ = dim(TEMP);
+                put "NOTE:[&arrayName.] Debug A:" "dim(TEMP)=" _T_;
+              %end;
+              return;
+            end;
+          else 
+            do;
+              put "WARNING:" "Array's lower bound must be less or equal than upper bound.";
+              put "        " "Current values are: lower =" position " upper =" value;
+              put "        " "One element array created.";
+              call dynamic_array(TEMP, 1);
+              maxposition       = 1;
+              minposition       = 1;
+              TEMP[1]           = .;
+              offset            = 0;
+              _rc_              = SEARCH.clear();
+              searchKey         = .;
+              searchCnt         = 1;
+              _rc_              = SEARCH.add();
+              return;
+            end;
+        end;
 
-    /* Clear - reduce an array to a single empty cell */
-    if IO = 'C' or IO = 'c' then
-      do;
-        call dynamic_array(TEMP, 1);
-        maxposition       = 1;
-        minposition       = 1;
-        TEMP[1]           = .;
-        offset            = 0;
-        _rc_              = SEARCH.clear();
-        searchKey         = .;
-        searchCnt         = 1;
-        _rc_              = SEARCH.add();
-        return;
-      end;
+    /* Clear - reduce an array to a single empty cell 
+     */
+      when ('CLEAR', 'C')
+        do;
+          call dynamic_array(TEMP, 1);
+          maxposition       = 1;
+          minposition       = 1;
+          TEMP[1]           = .;
+          offset            = 0;
+          _rc_              = SEARCH.clear();
+          searchKey         = .;
+          searchCnt         = 1;
+          _rc_              = SEARCH.add();
+          return;
+        end;
 
     /* Dimention - returns minimal and maximal index 
      */
-    if IO = 'D' or IO = 'd' then
-      do;
-        position = minposition;
-        value    = maxposition;
-        %if &debug %then %do;
-          _T_ = dim(TEMP);
-          put "NOTE:[&arrayName.] Debug D:" "dim(TEMP)=" _T_;
-        %end;
-        return;
-      end;
+      when ('DIM', 'D', 'DIMENTION', 'DIMENTIONS')
+        do;
+          position = minposition;
+          value    = maxposition;
+          %if &debug %then %do;
+            _T_ = dim(TEMP);
+            put "NOTE:[&arrayName.] Debug D:" "dim(TEMP)=" _T_;
+          %end;
+          return;
+        end;
 
     /* Statistics - returns selected statistics 
      */
-    if IO = 'S' or IO = 's' then
-      do;
-        value = .;
-        cnt   = 0;
-
-        select(position);
-          when (1, 2, 5) 
-            do; /* Sum, Average, NonMiss */
-              do _I_ = minposition+offset to maxposition+offset;
-                value = sum(value, TEMP[_I_]);
-                cnt = cnt + (TEMP[_I_] > .z);
-              end;
-              if position = 2 then value = divide(value, cnt);
-              else if position = 5 then value = cnt;
-              return;
-            end;
-          when (3) /* Min */
-            do;
-              do while(searchKey <= .z and iSEARCH.next() = 0);
-                 value = searchKey;
-              end;
-              _rc_ = iSEARCH.first();
-              _rc_ = iSEARCH.prev();
-              return;
-            end;
-          when (4) /* Max */
-            do;
-              _rc_ = iSEARCH.last();
-              value = searchKey;
-              position
-              _rc_ = iSEARCH.next();
-              return;
-            end;
-          otherwise;
+      when ('SUM', 'AVERAGE', 'AVG', 'MEAN', 'NONMISS') 
+        do; /* Sum, Average, NonMiss */
+          value = .;
+          cnt   = 0;
+          do _I_ = minposition+offset to maxposition+offset;
+            value = sum(value, TEMP[_I_]);
+            cnt = cnt + (TEMP[_I_] > .z);
+          end;
+          if upcase(IO) = 'AVERAGE' 
+          or upcase(IO) = 'AVG' 
+          or upcase(IO) = 'MEAN' then value = divide(value, cnt);
+          else 
+            if upcase(IO) = 'NONMISS' then value = cnt;
+          return;
         end;
+      when ('MIN', 'MINIMUM') /* Min */
+        do;
+          do while(searchKey <= .z and iSEARCH.next() = 0);
+             value = searchKey;
+          end;
+          _rc_ = iSEARCH.first();
+          _rc_ = iSEARCH.prev();
+          return;
+        end;
+      when ('MAX', 'MAXIMUM') /* Max */
+        do;
+          _rc_ = iSEARCH.last();
+          value = searchKey;
+          _rc_ = iSEARCH.next();
+          return;
+        end;
+      otherwise;
+    end;
 
-        return;
-      end;
-
-    put "NOTE:IO parameter value" IO "is unknown. Use: O, I, C, A, D, F, or S.";
+    put "NOTE: IO parameter value" IO "is unknown.";
+    put "Use: O, I, C, A, D, F, or S.";
     return;
   endsub;
 run;

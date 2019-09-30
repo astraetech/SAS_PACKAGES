@@ -81,7 +81,7 @@ proc fcmp outlib = &outlib.;
         return;
       end;
 
-        /* Output - get the data from an array */
+    /* Output - get the data from an array */
     if IO = 'F' or IO = 'f' then
       do;
         searchKey = value;
