@@ -13,21 +13,25 @@
 /**###################################################################**/
 
 /* dynamicfunctionarray is a FCMP based approach to create 
-   dynamicaly alocated numerical array with searching
+   dynamicaly alocated numerical array with searching and WHICHN() emulation
 */
 
-%macro crDFArray4(arrayName, debug=0, resizefactor=4999, outlib = work.DynamicFunctionArray.package, hashexp=13);
+%macro crDFArray4(arrayName, debug=0, outlib = work.DynamicFunctionArray.package, hashexp=13);
 proc fcmp outlib = &outlib.;
   subroutine &arrayName.(
       IO $     /* steering argument:
-                * O,o = Output    - get the data from an array
-                * I,i = Input     - insert the data into an array
-                * C,c = Clear     - reduce an array to a single empty cell
-                * A,a = Allocate  - reserve space for array's width 
-                *                   and set starting value
-                * D,d = Dimention - returns minimal and maximal index
-                * S,s = Summary   - calculate basic summary
-                * F,f = Find      - search if given value exist in the array
+                * O, Output, R, Return - get the data from an array
+                * I, Input             - insert the data into an array
+                * C, Clear             - reduce an array to a single empty cell
+                * A, Allocate          - reserve space for array's width and set starting value
+                * D, Dimention         - returns minimal and maximal index
+                * F, Find, Exist       - finds if given value exist in the array
+                * W, Which             - search the first position of data in array, WHICHN emulator
+                * Sum                  - returns sum of nonmissing elements of an array
+                * Nonmiss              - returns number of nonmissing elements of an array
+                * Avg, Mean, Average   - returns average of nonmissing elements of an array
+                * Min, Minimum         - returns minimum of nonmissing elements of an array
+                * Max, Maximum         - returns maximum of nonmissing elements of an array
                 */
     , position /* for O(I) it is an array's index from(into) which data is get(put)
                 * for C ignored
@@ -65,7 +69,7 @@ proc fcmp outlib = &outlib.;
     select(upcase(IO));
     /* Output - get the data from an array 
      */
-      when ('OUTPUT', 'O', 'RETURN', 'R')
+      when ('O', 'OUTPUT', 'R', 'RETURN')
         do;
           if (minposition <= position <= maxposition) 
             then value = TEMP[position + offset];
@@ -80,7 +84,7 @@ proc fcmp outlib = &outlib.;
 
     /* Find - search if the data exist in array, returns count 
      */
-      when ('FIND', 'F', 'EXIST')
+      when ('F', 'FIND', 'EXIST')
         do;
           searchKey = value;
           searchCnt = .;
@@ -89,9 +93,9 @@ proc fcmp outlib = &outlib.;
           return;
         end;
 
-    /* firstIndex - search the first position of data in array, WHICHN substitute 
+    /* firstIndex - search the first position of data in array, WHICHN emulator 
      */
-      when ('WHICH', 'W')
+      when ('W', 'WHICH')
         do;
           searchKey = value;
           firstIndex = .;
@@ -102,7 +106,7 @@ proc fcmp outlib = &outlib.;
 
     /* Input - insert the data into an array 
      */
-      when ('INPUT', 'I')
+      when ('I', 'INPUT')
         do;
 
           if not(minposition <= position <= maxposition) then 
@@ -112,7 +116,7 @@ proc fcmp outlib = &outlib.;
               return;
             end;
 
-   
+          /* update info in SEARCH hash table, part 1 */
           searchKey = TEMP[position + offset];
           searchCnt = .;
           firstIndex = .;
@@ -128,8 +132,10 @@ proc fcmp outlib = &outlib.;
             end;
           else _rc_ = SEARCH.remove();
 
+          /* insert data into array */
           TEMP[position + offset] = value;
 
+          /* update info in SEARCH hash table, part 2 */
           searchKey = value;
           searchCnt = .;
           firstIndex = .;
@@ -149,7 +155,7 @@ proc fcmp outlib = &outlib.;
     /* Allocate - reserve space for array's width 
      *            and set starting value
      */
-      when ('ALLOCATE', 'A')
+      when ('A', 'ALLOCATE')
         do;
           if .z < position <= value then 
             do;
@@ -198,7 +204,7 @@ proc fcmp outlib = &outlib.;
 
     /* Clear - reduce an array to a single empty cell 
      */
-      when ('CLEAR', 'C')
+      when ('C', 'CLEAR')
         do;
           call dynamic_array(TEMP, 1);
           maxposition       = 1;
@@ -214,7 +220,7 @@ proc fcmp outlib = &outlib.;
 
     /* Dimention - returns minimal and maximal index 
      */
-      when ('DIM', 'D', 'DIMENTION', 'DIMENTIONS')
+      when ('D', 'DIM', 'DIMENTION', 'DIMENTIONS')
         do;
           position = minposition;
           value    = maxposition;
@@ -227,7 +233,7 @@ proc fcmp outlib = &outlib.;
 
     /* Statistics - returns selected statistics 
      */
-      when ('SUM', 'AVERAGE', 'AVG', 'MEAN', 'NONMISS') 
+      when ('SUM', 'AVG', 'MEAN', 'AVERAGE', 'NONMISS') 
         do; /* Sum, Average, NonMiss */
           value = .;
           cnt   = 0;
@@ -235,9 +241,9 @@ proc fcmp outlib = &outlib.;
             value = sum(value, TEMP[_I_]);
             cnt = cnt + (TEMP[_I_] > .z);
           end;
-          if upcase(IO) = 'AVERAGE' 
-          or upcase(IO) = 'AVG' 
-          or upcase(IO) = 'MEAN' then value = divide(value, cnt);
+          if upcase(IO) = 'AVG' 
+          or upcase(IO) = 'MEAN' 
+          or upcase(IO) = 'AVERAGE' then value = divide(value, cnt);
           else 
             if upcase(IO) = 'NONMISS' then value = cnt;
           return;
