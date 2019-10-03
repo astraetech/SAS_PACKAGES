@@ -820,6 +820,8 @@ TODO:
 - syspackages - makrozmienna z lista zaladowanych pakietow
 
 - dodac typ "imp", "ds2", "proto"
+
+-lista wymaganych komponentow potrzebnych do działania SASa (na bazie proc SETINIT)
 */
 
 /*
