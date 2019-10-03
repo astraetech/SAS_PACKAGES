@@ -39,6 +39,7 @@ proc fcmp outlib = &outlib.;
       IO $     /* steering argument:
                 * O, Output, R, Return - get the data from an array
                 * I, Input             - insert the data into an array
+                * +, Add               - increment given position by value 
                 * C, Clear             - reduce an array to a single empty cell
                 * A, Allocate          - reserve space for array's width and set starting value
                 * D, Dimention         - returns minimal and maximal index
@@ -50,7 +51,7 @@ proc fcmp outlib = &outlib.;
                 * Min, Minimum         - returns minimum of nonmissing elements of an array
                 * Max, Maximum         - returns maximum of nonmissing elements of an array
                 */
-    , position /* for O, Output, R, Return/ I, Input it is an array's index from(into) which data is get(put)
+    , position /* for O, Output, R, Return/ I, Input/ +, Add it is an array's index from(into) which data is get(put)
                 * for C, Clear ignored
                 * for A, Allocate sets value of minposition (i.e. minimal position of the arrays's index that occured)
                 * for D, Dimention returns minposition
@@ -60,6 +61,7 @@ proc fcmp outlib = &outlib.;
                 */
     , value    /* for O, Output, R, Return it holds value retrieved from an array on a given position
                 * for I, Input it holds the value inserted into an array on a given position
+                * for +, Add it holds the value incrementing an array on a given position
                 * for C, Clear ignored
                 * for A, Allocate sets value of maxposition (i.e. maximal position of the arrays's index than occured)
                 * for D, Dimention returns maxposition
@@ -137,7 +139,7 @@ proc fcmp outlib = &outlib.;
 
     /* Input - insert the data into an array 
      */
-      when ('I', 'INPUT')
+      when ('I', 'INPUT', "+", "ADD")
         do;
         %if &resizefactor > 0 %then %do;
         /* to avoid resizeing when every new element is added */ 
@@ -226,6 +228,14 @@ proc fcmp outlib = &outlib.;
             _rc_ = SEARCH.replace();
           end;
         %end;
+
+        if upcase(IO) = "+" or upcase(IO) = "ADD" then
+          do;
+            _TO_BE_MODIF_VALUE_ = TEMP[position + offset];
+            if _TO_BE_MODIF_VALUE_ > .z then 
+              value = _TO_BE_MODIF_VALUE_ + value;
+          end;
+
 
         %if &simple = 0 %then %do;
           /* update info in SEARCH hash table, part 1 */
@@ -467,8 +477,8 @@ data test;
       call ArrayXYZ("I", a-3, 17); /* Insert below Low - Error */ 
       call ArrayXYZ("I", a  , 17); 
       call ArrayXYZ("I",floor((b+a)/2),42);
-      call ArrayXYZ("I", b+3, 17); /* Insert above High - Error */  
-      call ArrayXYZ("I", b  , 17);   
+      call ArrayXYZ("+", b+3, 17); /* Insert above High - Error */  
+      call ArrayXYZ("+", b  , 17);   
       call ArrayXYZ("D", L, H);  
       put "2) " _all_;
       
@@ -522,8 +532,8 @@ data test;
       call ArrayABC("I", a-3, 17); /* Insert below Low - Error */ 
       call ArrayABC("I", a  , 17); 
       call ArrayABC("I",floor((b+a)/2),42);
-      call ArrayABC("I", b+3, 17); /* Insert above High - Error */  
-      call ArrayABC("I", b  , 17);   
+      call ArrayABC("+", b+3, 17); /* Insert above High - Error */  
+      call ArrayABC("+", b  , 17);   
       call ArrayABC("D", L, H);  
       put "2) " _all_;
       
@@ -578,8 +588,8 @@ data test;
       call ArrayMNK("I", a-3, 17); /* Insert below Low - Error */ 
       call ArrayMNK("I", a  , 17); 
       call ArrayMNK("I",floor((b+a)/2),42);
-      call ArrayMNK("I", b+3, 17); /* Insert above High - Error */  
-      call ArrayMNK("I", b  , 17);   
+      call ArrayMNK("+", b+3, 17); /* Insert above High - Error */  
+      call ArrayMNK("+", b  , 17);   
       call ArrayMNK("D", L, H);  
       put "2) " _all_;
       
@@ -641,8 +651,8 @@ data test;
       i = a-3; xx = 17; call ArrayVWU("I", i, xx); /* Insert below Low - No Error */   call ArrayVWU("F", f, xx); call ArrayVWU("W", w, xx); call ArrayVWU("D", L, H); put 'a) ' _all_;
       i = a  ; xx = 17; call ArrayVWU("I", i, xx);                                     call ArrayVWU("F", f, xx); call ArrayVWU("W", w, xx); call ArrayVWU("D", L, H); put 'b) ' _all_;
       i=floor((b+a)/2); xx = 42; call ArrayVWU("I", i, xx);                            call ArrayVWU("F", f, xx); call ArrayVWU("W", w, xx); call ArrayVWU("D", L, H); put 'c) ' _all_;
-      i = b+3; xx = 17; call ArrayVWU("I", i, xx); /* Insert above High - No Error */  call ArrayVWU("F", f, xx); call ArrayVWU("W", w, xx); call ArrayVWU("D", L, H); put 'd) ' _all_;
-      i = b  ; xx = 17; call ArrayVWU("I", i, xx);                                     call ArrayVWU("F", f, xx); call ArrayVWU("W", w, xx); call ArrayVWU("D", L, H); put 'e) ' _all_;
+      i = b+3; xx = 17; call ArrayVWU("+", i, xx); /* Insert above High - No Error */  call ArrayVWU("F", f, xx); call ArrayVWU("W", w, xx); call ArrayVWU("D", L, H); put 'd) ' _all_;
+      i = b  ; xx = 17; call ArrayVWU("+", i, xx);                                     call ArrayVWU("F", f, xx); call ArrayVWU("W", w, xx); call ArrayVWU("D", L, H); put 'e) ' _all_;
       call ArrayVWU("D", L, H);
       call ArrayVWU("F", f, .); /* Find/Search for value */
       call ArrayVWU('W', w, .); /* which is the first index */ 
@@ -703,8 +713,8 @@ data test;
       i = a-3; xx = 17; call ArrayBIG("I", i, xx); /* Insert below Low - No Error */   call ArrayBIG("F", f, xx); call ArrayBIG("W", w, xx); call ArrayBIG("D", L, H); /*put 'a) ' _all_; */
       i = a  ; xx = 17; call ArrayBIG("I", i, xx);                                     call ArrayBIG("F", f, xx); call ArrayBIG("W", w, xx); call ArrayBIG("D", L, H); /*put 'b) ' _all_; */
       i=floor((b+a)/2); xx = 42; call ArrayBIG("I", i, xx);                            call ArrayBIG("F", f, xx); call ArrayBIG("W", w, xx); call ArrayBIG("D", L, H); /*put 'c) ' _all_; */
-      i = b+3; xx = 17; call ArrayBIG("I", i, xx); /* Insert above High - No Error */  call ArrayBIG("F", f, xx); call ArrayBIG("W", w, xx); call ArrayBIG("D", L, H); /*put 'd) ' _all_; */
-      i = b  ; xx = 17; call ArrayBIG("I", i, xx);                                     call ArrayBIG("F", f, xx); call ArrayBIG("W", w, xx); call ArrayBIG("D", L, H); /*put 'e) ' _all_; */
+      i = b+3; xx = 17; call ArrayBIG("+", i, xx); /* Insert above High - No Error */  call ArrayBIG("F", f, xx); call ArrayBIG("W", w, xx); call ArrayBIG("D", L, H); /*put 'd) ' _all_; */
+      i = b  ; xx = 17; call ArrayBIG("+", i, xx);                                     call ArrayBIG("F", f, xx); call ArrayBIG("W", w, xx); call ArrayBIG("D", L, H); /*put 'e) ' _all_; */
       call ArrayBIG("D", L, H);
       call ArrayBIG("F", f, .); /* Find/Search for value */
       call ArrayBIG('W', w, .); /* which is the first index */ 

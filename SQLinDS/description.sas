@@ -1,4 +1,4 @@
-/* This is the description file for the package.         */
+﻿/* This is the description file for the package.         */
 /* The collon (:) is a field separator and is restricted */
 /* in lines of the header part.                          */
 
@@ -11,6 +11,8 @@ Author: Mike Rhoads (RhoadsM1@Westat.com)        :/*required, not null*/
 Maintainer: Bartosz Jablonski (yabwon@gmail.com) :/*required, not null*/
 License: MIT                                     :/*required, not null, values: MIT, GPL2, BSD, etc.*/
 Encoding: UTF8                                   :/*required, not null, values: UTF8, WLATIN1, LATIN2, etc. */
+
+Required: "Base SAS Software"                    :/*optional, COMMA separated, QUOTED list, values must be like from proc setinit;run; output */
 
 /* **DESCRIPTION** */
 /* All the text below will be used in help */

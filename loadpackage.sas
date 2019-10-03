@@ -44,7 +44,7 @@
 */
 /*
 TODO:
-- makro do listowania dostepnych pakietow ze wskazanego folderu [DONE] sprawdz: %listPackages()
+- makro for testing avaliable packages in the packages' folder [DONE] checkuot: %listPackages()
 */
 /*** HELP END ***/
 
@@ -166,28 +166,34 @@ TODO:
 
 /*** HELP START ***/
 
-/* use example: 
-   assuming that _THIS_FILE_ and a macroarray.zip package 
-   are located in the "C:/SAS_PACKAGES/" folder 
-   coppy the following code int autoexec.sas
-   or run it in your SAS session
-*/
+/* 
+ * Filenames references "packages" and "package" are keywords;
+ * the first one should be used to point folder with packages;
+ * the second is used internaly by macros;
+
+ * Example 1: 
+ * assuming that _THIS_FILE_ and the SQLinDS package (sqlinds.zip file)
+ * are located in the "C:/SAS_PACKAGES/" folder 
+ * coppy the following code into autoexec.sas
+ * or run it in your SAS session
+**/
 /*
-libname packages "C:/SAS_PACKAGES/";
-%include "%sysfunc(pathname(packages))/loadpackage.sas";
-
-%loadPackage(macroarray)
-%helpPackage(macroarray)
-%unloadPackage(macroarray)
-
-OR
 
 filename packages "C:/SAS_PACKAGES";
 %include packages(loadpackage.sas);
 
-%loadpackage(macroarray)
-%helpPackage(macroarray)
-%unloadPackage(macroarray)
+%loadpackage(SQLinDS)
+%helpPackage(SQLinDS)
+%unloadPackage(SQLinDS)
+
+optional:
+
+libname packages "C:/SAS_PACKAGES/";
+%include "%sysfunc(pathname(packages))/loadpackage.sas";
+
+%loadPackage(SQLinDS)
+%helpPackage(SQLinDS)
+%unloadPackage(SQLinDS)
 
 */
 /*** HELP END ***/

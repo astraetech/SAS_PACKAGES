@@ -73,6 +73,7 @@ filename &_LIC_.   "&filesLocation./license.sas" lrecl = 256;
            packageMaintainer /* required */
            packageEncoding   /* required */
            packageLicense    /* required */
+           packageRequired   /* optional */
            ;
     data _null_;
       infile &_DESCR_.;
@@ -86,6 +87,7 @@ filename &_LIC_.   "&filesLocation./license.sas" lrecl = 256;
         when(upcase(scan(_INFILE_, 1, ":")) = "TITLE")      call symputX("packageTitle",      scan(_INFILE_, 2, ":"),"L");
         when(upcase(scan(_INFILE_, 1, ":")) = "ENCODING")   call symputX("packageEncoding",   scan(_INFILE_, 2, ":"),"L");
         when(upcase(scan(_INFILE_, 1, ":")) = "LICENSE")    call symputX("packageLicense",    scan(_INFILE_, 2, ":"),"L");
+        when(upcase(scan(_INFILE_, 1, ":")) = "REQUIRED")   call symputX("packageRequired",   scan(_INFILE_, 2, ":"),"L");
 
         /* stop at the begining of description */
         when(upcase(scan(_INFILE_, 1, ":")) = "DESCRIPTION START") stop;
@@ -406,7 +408,7 @@ run;
 data _null_;
   if NOBS = 0 then stop;
 
-  file &zipReferrence.(load.sas);
+  file &zipReferrence.(load.sas) lrecl=32767;
  
   put 'filename package list;' /;
   put ' %put NOTE- ;'; 
@@ -423,6 +425,77 @@ data _null_;
   put '%include package(packagemetadata.sas) / nosource2;' /; /* <- copied also to loadPackage macro */
   isFunction = 0;
   isFormat   = 0;
+
+  %if %bquote(&packageRequired.) ne %then
+    %do;
+      put ' data _null_;                                                     ';
+      put '  call symputX("packageRequiredErrors", 0, "L");                  ';
+      put ' run;                                                             ';
+      put ' %put NOTE- *Testing required SAS components*%sysfunc(dosubl(     ';
+      put ' options nonotes nosource %str(;)                                 ';
+      put ' /* temporary redirect log */                                     ';
+      put ' filename _stinit_ TEMP %str(;)                                   ';
+      put ' proc printto log = _stinit_ %str(;) run %str(;)                  ';
+      put ' /* print out setinit */                                          ';
+      put ' proc setinit %str(;) run %str(;)                                 ';
+      put ' proc printto %str(;) run %str(;)                                 ';
+      put ' options ls=max ps=max %str(;)                                    ';
+      put ' data _null_ %str(;)                                              ';
+      put '   /* loadup checklist of required SAS components */              ';
+      put '   if _n_ = 1 then                                                ';
+      put '     do %str(;)                                                   ';
+      put '       length req $ 256 %str(;)                                   ';
+      put '       declare hash R() %str(;)                                   ';
+      put '       _N_ = R.defineKey("req") %str(;)                           ';
+      put '       _N_ = R.defineDone() %str(;)                               ';
+      put '       declare hiter iR("R") %str(;)                              ';
+        length packageRequired $ 32767; 
+        packageRequired = upcase(symget('packageRequired'));
+      put '         do req = %bquote(' / packageRequired / ') %str(;)        ';
+      put '          _N_ = R.add(key:req,data:req) %str(;)   ';
+      put '         end %str(;)                                              ';
+      put '     end %str(;)                                                  ';
+      put '                                                                  ';
+      put '   /* read in output from proc setinit */                         ';
+      put '   infile _stinit_ end=eof %str(;)                                ';
+      put '   input %str(;)                                                  ';
+      /*put ' put "*> " _infile_ %str(;)';*/ /* for testing */
+      put '                                                                  ';
+      put '   /* if component is in setinit remove it from checklist */      ';
+      put '   if _infile_ =: "---" then                                      ';
+      put '     do %str(;)                                                   ';
+      put '       req = upcase(substr(_infile_, 4, 64)) %str(;)              ';
+      put '       if R.find(key:req) = 0 then                                ';
+      put '         do %str(;)                                               ';
+      put '           _N_ = R.remove() %str(;)                               ';
+      put '         end %str(;)                                              ';
+      put '     end %str(;)                                                  ';
+      put '                                                                  ';
+      put '   /* if checklist is not null rise error */                      ';
+      put '   if eof and R.num_items > 0 then                                ';
+      put '     do %str(;)                                                   ';
+      put '       put "ERROR- ###########################################" %str(;) ';
+      put '       put "ERROR-  The following SAS components are missing! " %str(;) ';
+      put '       call symputX("packageRequiredErrors", 1, "L") %str(;)      ';
+      put '       do while(iR.next() = 0) %str(;)                            ';
+      put '         put "ERROR-   " req %str(;)                              ';
+      put '       end %str(;)                                                ';
+      put '       put "ERROR- ###########################################" %str(;) ';
+      put '       put %str(;)                                                ';
+      put '     end %str(;)                                                  ';
+      put ' run %str(;)                                                      ';
+      put ' filename _stinit_ clear %str(;)                                  ';
+      put ' options notes source %str(;)                                     ';
+      put ' ))*;                                                             ';
+      put ' data _null_;                                                     ';
+      put '  if symget("packageRequiredErrors") = "1" then                   ';
+      put '    do;                                                           ';
+      put '      put "ERROR: Loading package &packageName. will be aborted!";';
+      put '      put "ERROR- Required SAS components are missing.";          ';
+      put '      ABORT;                                                      ';
+      put '    end;                                                          ';
+      put ' run;                                                             ';
+    %end;
 
   do until(eof);
     set &filesWithCodes. end = EOF nobs=NOBS;
